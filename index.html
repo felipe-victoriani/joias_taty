@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Semijoias elegantes e sofisticadas. Descubra nossa coleção exclusiva."
+    />
+    <title>Taty Joias | Elegância em Cada Detalhe</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <div class="logo">
+            <h1>TATY SEMI JOIAS</h1>
+            <p class="tagline">Elegância Atemporal</p>
+          </div>
+
+          <nav class="nav">
+            <a href="#colecao" class="btn-nav">Ver Coleção</a>
+            <button class="cart-btn" id="cartBtn">
+              <i class="fas fa-shopping-bag"></i>
+              <span class="cart-count" id="cartCount">0</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <h2 class="hero-title fade-in">Beleza que Transcende o Tempo</h2>
+        <p class="hero-subtitle fade-in-delay">
+          Descubra nossa coleção exclusiva de semijoias
+        </p>
+        <a href="#colecao" class="btn-primary fade-in-delay-2"
+          >Explorar Coleção</a
+        >
+      </div>
+      <div class="hero-scroll">
+        <i class="fas fa-chevron-down"></i>
+      </div>
+    </section>
+
+    <!-- Sobre -->
+    <section class="about">
+      <div class="container">
+        <div class="about-content fade-in-scroll">
+          <h2 class="section-title">Sobre Nós</h2>
+          <p class="about-text">
+            Cada peça é cuidadosamente selecionada para você que aprecia
+            elegância e sofisticação. Transformamos momentos especiais em
+            memórias inesquecíveis com semijoias de alta qualidade.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Coleção de Produtos -->
+    <section class="collection" id="colecao">
+      <div class="container">
+        <h2 class="section-title fade-in-scroll">Nossa Coleção</h2>
+        <p class="section-subtitle fade-in-scroll">
+          Peças exclusivas para realçar sua beleza
+        </p>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <p>Carregando produtos...</p>
+        </div>
+
+        <!-- Grid de Produtos -->
+        <div class="products-grid" id="productsGrid">
+          <!-- Produtos de Exemplo -->
+          <div class="product-card fade-in-scroll">
+            <div class="product-image-container">
+              <img
+                src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=500&q=80"
+                alt="Colar Elegance"
+                class="product-image"
+              />
+            </div>
+            <div class="product-info">
+              <h3 class="product-name">Colar Elegance</h3>
+              <p class="product-description">
+                Colar delicado em banho de ouro com pingente de coração
+              </p>
+              <p class="product-price">R$ 89,90</p>
+              <button class="btn-add-cart" onclick="addToCart('produto-1')">
+                <i class="fas fa-shopping-cart"></i>
+                Adicionar ao Carrinho
+              </button>
+            </div>
+          </div>
+
+          <div class="product-card fade-in-scroll">
+            <div class="product-image-container">
+              <img
+                src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=500&q=80"
+                alt="Brinco Luxo"
+                class="product-image"
+              />
+            </div>
+            <div class="product-info">
+              <h3 class="product-name">Brinco Luxo</h3>
+              <p class="product-description">
+                Par de brincos em argola com detalhes em cristal
+              </p>
+              <p class="product-price">R$ 69,90</p>
+              <button class="btn-add-cart" onclick="addToCart('produto-2')">
+                <i class="fas fa-shopping-cart"></i>
+                Adicionar ao Carrinho
+              </button>
+            </div>
+          </div>
+
+          <div class="product-card fade-in-scroll">
+            <div class="product-image-container">
+              <img
+                src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500&q=80"
+                alt="Pulseira Sofisticada"
+                class="product-image"
+              />
+            </div>
+            <div class="product-info">
+              <h3 class="product-name">Pulseira Sofisticada</h3>
+              <p class="product-description">
+                Pulseira elo português folheada a ouro 18k
+              </p>
+              <p class="product-price">R$ 129,90</p>
+              <button class="btn-add-cart" onclick="addToCart('produto-3')">
+                <i class="fas fa-shopping-cart"></i>
+                Adicionar ao Carrinho
+              </button>
+            </div>
+          </div>
+
+          <div class="product-card fade-in-scroll">
+            <div class="product-image-container">
+              <img
+                src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=500&q=80"
+                alt="Anel Clássico"
+                class="product-image"
+              />
+              <span class="product-badge">Esgotado</span>
+            </div>
+            <div class="product-info">
+              <h3 class="product-name">Anel Clássico</h3>
+              <p class="product-description">
+                Anel solitário com zircônia cravejada
+              </p>
+              <p class="product-price">R$ 79,90</p>
+              <button class="btn-add-cart" disabled>
+                <i class="fas fa-shopping-cart"></i>
+                Esgotado
+              </button>
+            </div>
+          </div>
+
+          <div class="product-card fade-in-scroll">
+            <div class="product-image-container">
+              <img
+                src="https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=500&q=80"
+                alt="Conjunto Premium"
+                class="product-image"
+              />
+            </div>
+            <div class="product-info">
+              <h3 class="product-name">Conjunto Premium</h3>
+              <p class="product-description">
+                Conjunto colar e brinco com pedras naturais
+              </p>
+              <p class="product-price">R$ 159,90</p>
+              <button class="btn-add-cart" onclick="addToCart('produto-5')">
+                <i class="fas fa-shopping-cart"></i>
+                Adicionar ao Carrinho
+              </button>
+            </div>
+          </div>
+
+          <div class="product-card fade-in-scroll">
+            <div class="product-image-container">
+              <img
+                src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=500&q=80"
+                alt="Tornozeleira Delicada"
+                class="product-image"
+              />
+            </div>
+            <div class="product-info">
+              <h3 class="product-name">Tornozeleira Delicada</h3>
+              <p class="product-description">
+                Tornozeleira fina com pingentes em formato de estrela
+              </p>
+              <p class="product-price">R$ 49,90</p>
+              <button class="btn-add-cart" onclick="addToCart('produto-6')">
+                <i class="fas fa-shopping-cart"></i>
+                Adicionar ao Carrinho
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Carrinho Lateral -->
+    <div class="cart-sidebar" id="cartSidebar">
+      <div class="cart-header">
+        <h3>Meu Carrinho</h3>
+        <button class="cart-close" id="cartClose">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="cart-body" id="cartBody">
+        <!-- Itens do carrinho serão inseridos aqui -->
+        <div class="cart-empty" id="cartEmpty">
+          <i class="fas fa-shopping-bag"></i>
+          <p>Seu carrinho está vazio</p>
+        </div>
+      </div>
+
+      <div class="cart-footer" id="cartFooter">
+        <div class="cart-total">
+          <span>Total:</span>
+          <span class="total-price" id="totalPrice">R$ 0,00</span>
+        </div>
+        <button class="btn-whatsapp" id="btnWhatsapp">
+          <i class="fab fa-whatsapp"></i>
+          Finalizar via WhatsApp
+        </button>
+      </div>
+    </div>
+
+    <!-- Overlay do Carrinho -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>TATY JOIAS</h3>
+            <p>Elegância e sofisticação em cada detalhe.</p>
+          </div>
+
+          <div class="footer-section">
+            <h4>Contato</h4>
+            <p><i class="fab fa-whatsapp"></i> (00) 00000-0000</p>
+            <p><i class="fas fa-envelope"></i> contato@tatyjoias.com</p>
+          </div>
+
+          <div class="footer-section">
+            <h4>Redes Sociais</h4>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-facebook"></i></a>
+              <a href="#"><i class="fab fa-pinterest"></i></a>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>&copy; 2026 Taty Joias. Todos os direitos reservados.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
