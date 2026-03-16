@@ -543,8 +543,8 @@ function sendToWhatsApp() {
     return;
   }
 
-  // ⚠️ IMPORTANTE: Substitua pelo seu número de WhatsApp (formato: 5511999999999)
-  const phoneNumber = "5500000000000"; // Exemplo: 5511999887766
+  // Número do WhatsApp configurado: (67) 99642-5943
+  const phoneNumber = "5567996425943";
 
   // Monta a mensagem
   let message = "🛍️ *Novo Pedido - Taty Joias*\n\n";

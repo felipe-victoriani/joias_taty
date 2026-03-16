@@ -39,6 +39,17 @@
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
 }
 
+/* Animação de Pulso para o Botão WhatsApp */
+@keyframes pulse-whatsapp {
+  0%,
+  100% {
+    box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(37, 211, 102, 0.6);
+  }
+}
+
 body {
   font-family: var(--font-secondary);
   color: var(--color-black);
@@ -566,7 +577,10 @@ a {
   overflow-y: auto;
   padding: var(--spacing-md);
   min-height: 0; /* Permite que o flex funcione corretamente */
-  max-height: calc(100vh - 200px); /* Garante espaço para header e footer */
+  max-height: calc(
+    100vh - 250px
+  ); /* Garante espaço suficiente para header e footer */
+  padding-bottom: 0; /* Remove padding inferior para economizar espaço */
 }
 
 .cart-empty {
@@ -614,6 +628,13 @@ a {
   font-weight: 600;
 }
 
+.cart-item-quantity {
+  font-size: 0.9rem;
+  color: var(--color-gray);
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
 .cart-item-remove {
   background: transparent;
   border: none;
@@ -635,6 +656,9 @@ a {
   flex-shrink: 0; /* Impede que o footer encolha */
   min-height: auto;
   z-index: 1; /* Garante que fique acima do body */
+  position: sticky;
+  bottom: 0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .cart-total {
@@ -670,7 +694,10 @@ a {
   gap: 0.5rem;
   position: relative;
   z-index: 10; /* Garante que fique sempre visível */
-  min-height: 50px; /* Altura mínima para boa usabilidade */
+  min-height: 52px; /* Altura mínima para boa usabilidade */
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+  animation: pulse-whatsapp 2s ease-in-out infinite;
 }
 
 .btn-whatsapp:hover {
@@ -900,14 +927,17 @@ a {
 
   .cart-body {
     padding: 0.75rem;
-    max-height: calc(100vh - 160px); /* Ajuste para mobile */
+    padding-bottom: 0.5rem;
+    max-height: calc(100vh - 220px); /* Mais espaço para o footer em mobile */
   }
 
   .cart-footer {
-    padding: 0.75rem;
-    position: relative;
+    padding: 1rem;
+    position: sticky;
+    bottom: 0;
     z-index: 2;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1); /* Sombra para destacar */
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15); /* Sombra maior para destacar */
+    background: var(--color-white); /* Fundo mais contrastante */
   }
 
   .cart-item {
@@ -947,7 +977,13 @@ a {
   .btn-whatsapp {
     padding: 1.2rem;
     font-size: 1.1rem;
-    min-height: 48px;
+    min-height: 56px; /* Altura maior em mobile para melhor toque */
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4); /* Sombra mais destacada */
+  }
+
+  .btn-whatsapp i {
+    font-size: 1.5rem; /* Ícone maior em mobile */
   }
 
   .cart-close {
