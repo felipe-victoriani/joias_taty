@@ -86,6 +86,14 @@
         background-color: #b38e2c; /* Tom mais escuro de dourado */
       }
 
+      .login-error {
+        color: #d32f2f;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        text-align: center;
+        display: none;
+      }
+
       .hidden {
         display: none;
       }
@@ -96,13 +104,24 @@
       <form class="login-form" id="loginForm">
         <h2>Login Admin</h2>
         <div class="form-group">
-          <label for="username">Usuário</label>
-          <input type="text" id="username" required />
+          <label for="loginEmail">Email</label>
+          <input
+            type="email"
+            id="loginEmail"
+            required
+            placeholder="admin@exemplo.com"
+          />
         </div>
         <div class="form-group">
-          <label for="password">Senha</label>
-          <input type="password" id="password" required />
+          <label for="loginPassword">Senha</label>
+          <input
+            type="password"
+            id="loginPassword"
+            required
+            placeholder="Digite sua senha"
+          />
         </div>
+        <div id="loginError" class="login-error"></div>
         <div class="form-actions">
           <button type="submit">Entrar</button>
         </div>
