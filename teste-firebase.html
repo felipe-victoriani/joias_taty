@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🔍 Teste de Conexão Firebase</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+      .container {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 800px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 30px;
+        text-align: center;
+      }
+      .status {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .status.loading {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .status.success {
+        background: #d4edda;
+        color: #155724;
+      }
+      .status.error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .status i {
+        font-size: 20px;
+      }
+      pre {
+        background: #f4f4f4;
+        padding: 15px;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 10px 0;
+        font-size: 12px;
+      }
+      .products {
+        margin-top: 20px;
+      }
+      .product-item {
+        background: #f8f9fa;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        border-left: 4px solid #667eea;
+      }
+      button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px 5px;
+        transition: all 0.3s;
+      }
+      button:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+      }
+      .instructions {
+        background: #e7f3ff;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        border-left: 4px solid #2196f3;
+      }
+      .instructions h3 {
+        color: #1976d2;
+        margin-bottom: 10px;
+      }
+      .instructions ol {
+        margin-left: 20px;
+      }
+      .instructions li {
+        margin: 8px 0;
+        color: #555;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔍 Teste de Conexão Firebase</h1>
+
+      <div id="statusContainer"></div>
+
+      <div class="instructions">
+        <h3>📋 Se aparecer erro "PERMISSION_DENIED":</h3>
+        <ol>
+          <li>
+            Acesse:
+            <a href="https://console.firebase.google.com/" target="_blank"
+              >Firebase Console</a
+            >
+          </li>
+          <li>
+            Clique em <strong>Realtime Database</strong> →
+            <strong>Regras</strong>
+          </li>
+          <li>Cole as regras do arquivo <code>FIREBASE_RULES.json</code></li>
+          <li>Clique em <strong>Publicar</strong></li>
+          <li>Teste novamente clicando no botão abaixo</li>
+        </ol>
+      </div>
+
+      <button onclick="testarConexao()">🔄 Testar Novamente</button>
+      <button onclick="window.location.reload()">♻️ Recarregar Página</button>
+
+      <div id="productsContainer"></div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+      const statusContainer = document.getElementById("statusContainer");
+      const productsContainer = document.getElementById("productsContainer");
+
+      function addStatus(message, type = "loading", details = "") {
+        const icon =
+          type === "success"
+            ? "fa-check-circle"
+            : type === "error"
+              ? "fa-times-circle"
+              : "fa-spinner fa-spin";
+
+        const statusDiv = document.createElement("div");
+        statusDiv.className = `status ${type}`;
+        statusDiv.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <div>
+                    <strong>${message}</strong>
+                    ${details ? `<pre>${details}</pre>` : ""}
+                </div>
+            `;
+        statusContainer.appendChild(statusDiv);
+      }
+
+      async function testarConexao() {
+        statusContainer.innerHTML = "";
+        productsContainer.innerHTML = "";
+
+        // Teste 1: Firebase SDK
+        addStatus("Verificando Firebase SDK...");
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        if (typeof firebase !== "undefined") {
+          addStatus("Firebase SDK carregado ✓", "success");
+        } else {
+          addStatus(
+            "Firebase SDK NÃO encontrado!",
+            "error",
+            "Verifique se os scripts do Firebase estão carregando",
+          );
+          return;
+        }
+
+        // Teste 2: Conexão com Database
+        addStatus("Testando conexão com Realtime Database...");
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        try {
+          const connectedRef = database.ref(".info/connected");
+          connectedRef.on("value", (snapshot) => {
+            if (snapshot.val() === true) {
+              addStatus("Conectado ao Firebase Realtime Database ✓", "success");
+            } else {
+              addStatus("Desconectado do Firebase", "error");
+            }
+          });
+        } catch (error) {
+          addStatus("Erro ao verificar conexão", "error", error.message);
+        }
+
+        // Teste 3: Carregar produtos
+        addStatus("Carregando produtos...");
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        try {
+          const products = await loadProducts();
+
+          if (products.length > 0) {
+            addStatus(
+              `${products.length} produtos carregados com sucesso! ✓`,
+              "success",
+            );
+
+            productsContainer.innerHTML =
+              '<div class="products"><h3>📦 Produtos Encontrados:</h3></div>';
+            const productsDiv = productsContainer.querySelector(".products");
+
+            products.forEach((product) => {
+              const productDiv = document.createElement("div");
+              productDiv.className = "product-item";
+              productDiv.innerHTML = `
+                            <strong>${product.nome}</strong> - R$ ${product.preco.toFixed(2)} 
+                            <span style="color: ${product.status === "disponivel" ? "green" : "red"}">
+                                (${product.status})
+                            </span>
+                        `;
+              productsDiv.appendChild(productDiv);
+            });
+          } else {
+            addStatus(
+              "Nenhum produto encontrado",
+              "error",
+              "Adicione produtos pelo painel admin",
+            );
+          }
+        } catch (error) {
+          addStatus(
+            "ERRO ao carregar produtos!",
+            "error",
+            `Código: ${error.code}\nMensagem: ${error.message}`,
+          );
+
+          if (error.code === "PERMISSION_DENIED") {
+            addStatus(
+              "🚫 PERMISSÃO NEGADA - Configure as regras do Firebase!",
+              "error",
+              "Siga as instruções acima para configurar as regras de segurança",
+            );
+          }
+        }
+
+        // Teste 4: Listener em tempo real
+        addStatus("Configurando listener de atualizações em tempo real...");
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        try {
+          listenToProducts((products) => {
+            console.log(
+              "🔄 Atualização em tempo real:",
+              products.length,
+              "produtos",
+            );
+          });
+          addStatus(
+            "Listener em tempo real ativado ✓",
+            "success",
+            "Produtos serão atualizados automaticamente",
+          );
+        } catch (error) {
+          addStatus("Erro ao configurar listener", "error", error.message);
+        }
+      }
+
+      // Executar teste ao carregar
+      window.addEventListener("load", () => {
+        setTimeout(testarConexao, 1000);
+      });
+    </script>
+  </body>
+</html>

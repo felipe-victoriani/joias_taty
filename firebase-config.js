@@ -61,11 +61,12 @@ try {
  */
 async function loadProducts() {
   try {
+    console.log("📥 Buscando produtos do Firebase...");
     const snapshot = await productsRef.once("value");
     const data = snapshot.val();
 
     if (!data) {
-      console.log("📝 Nenhum produto encontrado, usando produtos de exemplo");
+      console.log("📝 Nenhum produto encontrado no Firebase");
       return [];
     }
 
@@ -75,10 +76,15 @@ async function loadProducts() {
       ...data[key],
     }));
 
-    console.log("✅ Produtos carregados:", products.length);
+    console.log("✅ Produtos carregados do Firebase:", products.length);
+    console.table(
+      products.map((p) => ({ id: p.id, nome: p.nome, status: p.status })),
+    );
     return products;
   } catch (error) {
-    console.error("❌ Erro ao carregar produtos:", error);
+    console.error("❌ Erro ao carregar produtos do Firebase:", error);
+    console.error("💡 Verifique as regras de segurança do Firebase");
+    console.error("💡 Veja o arquivo CONFIGURACAO_FIREBASE.md para instruções");
     throw error;
   }
 }
@@ -154,12 +160,15 @@ async function deleteProduct(productId) {
  * @returns {Function} Função para cancelar a escuta
  */
 function listenToProducts(callback) {
+  console.log("👂 Iniciando escuta em tempo real de produtos...");
+
   const listener = productsRef.on(
     "value",
     (snapshot) => {
       const data = snapshot.val();
 
       if (!data) {
+        console.log("📝 Nenhum produto no Firebase");
         callback([]);
         return;
       }
@@ -171,10 +180,20 @@ function listenToProducts(callback) {
       }));
 
       console.log("🔄 Produtos atualizados em tempo real:", products.length);
+      console.log("📦 IDs dos produtos:", products.map((p) => p.id).join(", "));
       callback(products);
     },
     (error) => {
       console.error("❌ Erro ao escutar produtos:", error);
+      console.error("💡 Código do erro:", error.code);
+      console.error("💡 Mensagem:", error.message);
+
+      if (error.code === "PERMISSION_DENIED") {
+        console.error("🚫 PERMISSÃO NEGADA!");
+        console.error(
+          "📋 Configure as regras do Firebase conforme CONFIGURACAO_FIREBASE.md",
+        );
+      }
     },
   );
 

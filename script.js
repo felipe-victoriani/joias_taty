@@ -3,62 +3,8 @@
 // ========================================
 
 let cart = [];
-let products = [
-  {
-    id: "produto-1",
-    nome: "Colar Elegance",
-    descricao: "Colar delicado em banho de ouro com pingente de coração",
-    preco: 89.9,
-    imagem:
-      "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=500&q=80",
-    status: "disponivel",
-  },
-  {
-    id: "produto-2",
-    nome: "Brinco Luxo",
-    descricao: "Par de brincos em argola com detalhes em cristal",
-    preco: 69.9,
-    imagem:
-      "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=500&q=80",
-    status: "disponivel",
-  },
-  {
-    id: "produto-3",
-    nome: "Pulseira Sofisticada",
-    descricao: "Pulseira elo português folheada a ouro 18k",
-    preco: 129.9,
-    imagem:
-      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500&q=80",
-    status: "disponivel",
-  },
-  {
-    id: "produto-4",
-    nome: "Anel Clássico",
-    descricao: "Anel solitário com zircônia cravejada",
-    preco: 79.9,
-    imagem:
-      "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=500&q=80",
-    status: "esgotado",
-  },
-  {
-    id: "produto-5",
-    nome: "Conjunto Premium",
-    descricao: "Conjunto colar e brinco com pedras naturais",
-    preco: 159.9,
-    imagem:
-      "https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=500&q=80",
-    status: "disponivel",
-  },
-  {
-    id: "produto-6",
-    nome: "Tornozeleira Delicada",
-    descricao: "Tornozeleira fina com pingentes em formato de estrela",
-    preco: 49.9,
-    imagem:
-      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=500&q=80",
-    status: "disponivel",
-  },
-];
+// Array de produtos - será carregado do Firebase
+let products = [];
 
 // ========================================
 // CARRINHO - FUNÇÕES GLOBAIS
@@ -166,19 +112,26 @@ async function initializeApp() {
   try {
     console.log("🚀 Inicializando aplicação...");
 
-    // Tenta carregar produtos do Firebase
+    // Carrega produtos do Firebase
     try {
       showLoading(true);
       await loadProductsFromFirebase();
-      console.log("✅ Produtos carregados do Firebase");
+      console.log("✅ Sistema inicializado - produtos carregados do Firebase");
     } catch (firebaseError) {
-      console.warn(
-        "⚠️ Erro ao carregar do Firebase, usando produtos locais:",
-        firebaseError,
+      console.error("❌ Erro ao carregar produtos do Firebase:", firebaseError);
+      console.error("💡 Soluções:");
+      console.error("   1. Verifique sua conexão com a internet");
+      console.error(
+        "   2. Configure as regras do Firebase (veja CONFIGURACAO_FIREBASE.md)",
       );
-      // Fallback: usa produtos locais se Firebase falhar
-      renderProducts(products);
+      console.error("   3. Adicione produtos pelo painel admin (admin.html)");
+
+      // Mostra mensagem de erro amigável
+      renderProducts([]);
       showLoading(false);
+      showError(
+        "Não foi possível carregar os produtos. Verifique sua conexão.",
+      );
     }
 
     loadCartFromStorage();
@@ -187,10 +140,9 @@ async function initializeApp() {
 
     console.log("✅ Aplicação inicializada com sucesso!");
   } catch (error) {
-    console.error("❌ Erro ao inicializar app:", error);
-    showError("Erro ao carregar produtos. Por favor, recarregue a página.");
-    // Fallback final: mostra produtos locais
-    renderProducts(products);
+    console.error("❌ Erro crítico ao inicializar app:", error);
+    showError("Erro ao carregar a loja. Por favor, recarregue a página.");
+    renderProducts([]);
     showLoading(false);
   }
 }
@@ -314,19 +266,17 @@ async function loadProductsFromFirebase() {
   try {
     console.log("📱 Carregando produtos do Firebase Realtime Database...");
 
-    // Inicializa produtos de exemplo se necessário
-    await initializeExampleProducts();
-
-    // Carrega produtos
+    // Carrega produtos do Firebase
     const firebaseProducts = await loadProducts();
 
     if (firebaseProducts && firebaseProducts.length > 0) {
       products = firebaseProducts;
       renderProducts(products);
-      console.log("✅ Produtos carregados:", products.length);
+      console.log("✅ Produtos carregados do Firebase:", products.length);
     } else {
-      console.log("📝 Usando produtos locais como fallback");
-      renderProducts(products);
+      console.log("⚠️ Nenhum produto encontrado no Firebase");
+      console.log("💡 Adicione produtos pelo painel admin em: admin.html");
+      renderProducts([]); // Mostra página vazia
     }
 
     // Escuta mudanças em tempo real
@@ -335,6 +285,11 @@ async function loadProductsFromFirebase() {
         products = updatedProducts;
         renderProducts(products);
         console.log("🔄 Produtos atualizados em tempo real:", products.length);
+      } else {
+        // Se não há produtos, mostra página vazia
+        products = [];
+        renderProducts([]);
+        console.log("📝 Firebase está vazio - adicione produtos pelo admin");
       }
     });
 
@@ -344,6 +299,10 @@ async function loadProductsFromFirebase() {
     showLoading(false);
   } catch (error) {
     console.error("❌ Erro ao carregar produtos do Firebase:", error);
+    console.error("💡 Verifique:");
+    console.error("   1. As regras do Firebase estão configuradas?");
+    console.error("   2. Veja o arquivo CONFIGURACAO_FIREBASE.md");
+    console.error("   3. Abra teste-firebase.html para diagnóstico");
     showLoading(false);
     throw error;
   }
