@@ -256,6 +256,7 @@ a {
   text-transform: uppercase;
   letter-spacing: 2px;
   box-shadow: var(--shadow-md);
+  border-radius: 10px;
 }
 
 .btn-primary:hover {

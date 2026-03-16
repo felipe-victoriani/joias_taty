@@ -586,7 +586,7 @@ function sendToWhatsApp() {
   const phoneNumber = "5567996425943";
 
   // Monta a mensagem
-  let message = "🛍️ *Novo Pedido - Taty Joias*\n\n";
+  let message = "🛍️ *Novo Pedido - Cachinhos Dourados*\n\n";
   message += "📦 *Produtos:*\n";
 
   cart.forEach((item, index) => {
@@ -598,7 +598,7 @@ function sendToWhatsApp() {
 
   const total = cart.reduce((sum, item) => sum + item.preco * item.quantity, 0);
   message += `\n💰 *Total: R$ ${formatPrice(total)}*\n\n`;
-  message += "✨ Obrigada por escolher Taty Joias!";
+  message += "✨ Obrigada por escolher Cachinhos Dourados!";
 
   // Codifica a mensagem para URL
   const encodedMessage = encodeURIComponent(message);
