@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🔧 Diagnóstico Admin - Teste</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .status-box {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .status-box.info {
+        background: #e3f2fd;
+        color: #1565c0;
+      }
+      .status-box.success {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+      .status-box.error {
+        background: #ffebee;
+        color: #c62828;
+      }
+      .status-box.warning {
+        background: #fff3e0;
+        color: #e65100;
+      }
+      .status-box i {
+        font-size: 20px;
+        margin-top: 2px;
+      }
+      button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px 5px;
+        transition: all 0.3s;
+      }
+      button:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+      pre {
+        background: #f4f4f4;
+        padding: 15px;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 10px 0;
+        font-size: 12px;
+      }
+      .test-form {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333;
+      }
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+      #results {
+        margin-top: 20px;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔧 Diagnóstico Admin - Teste de Adicionar Produto</h1>
+
+      <div id="statusContainer"></div>
+
+      <div class="test-form">
+        <h3>📝 Teste Rápido - Adicionar Produto</h3>
+        <form id="testForm">
+          <div class="form-group">
+            <label>Nome do Produto:</label>
+            <input type="text" id="testNome" value="Produto Teste" required />
+          </div>
+          <div class="form-group">
+            <label>Descrição:</label>
+            <textarea id="testDesc" rows="3" required>
+Produto de teste para diagnóstico</textarea
+            >
+          </div>
+          <div class="form-group">
+            <label>Preço (R$):</label>
+            <input
+              type="number"
+              id="testPreco"
+              value="99.90"
+              step="0.01"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>URL da Imagem:</label>
+            <input
+              type="url"
+              id="testImagem"
+              value="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=500&q=80"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>Status:</label>
+            <select id="testStatus" required>
+              <option value="disponivel">Disponível</option>
+              <option value="esgotado">Esgotado</option>
+            </select>
+          </div>
+          <button type="submit" id="btnTest">
+            ➕ Adicionar Produto de Teste
+          </button>
+        </form>
+      </div>
+
+      <button onclick="verificarConexao()">🔍 Verificar Conexão</button>
+      <button onclick="verificarAutenticacao()">
+        🔐 Verificar Autenticação
+      </button>
+      <button onclick="listarProdutos()">📦 Listar Produtos</button>
+      <button onclick="limparResultados()">🗑️ Limpar</button>
+
+      <div id="results"></div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+      const statusContainer = document.getElementById("statusContainer");
+      const results = document.getElementById("results");
+
+      function addStatus(message, type = "info", details = "") {
+        const icons = {
+          info: "fa-info-circle",
+          success: "fa-check-circle",
+          error: "fa-times-circle",
+          warning: "fa-exclamation-triangle",
+        };
+        const statusDiv = document.createElement("div");
+        statusDiv.className = `status-box ${type}`;
+        statusDiv.innerHTML = `
+                <i class="fas ${icons[type]}"></i>
+                <div>
+                    <strong>${message}</strong>
+                    ${details ? `<pre>${details}</pre>` : ""}
+                </div>
+            `;
+        statusContainer.appendChild(statusDiv);
+      }
+
+      function limparResultados() {
+        statusContainer.innerHTML = "";
+        results.innerHTML = "";
+      }
+
+      async function verificarConexao() {
+        limparResultados();
+        addStatus("Verificando conexão com Firebase...", "info");
+
+        try {
+          const connectedRef = database.ref(".info/connected");
+          connectedRef.on("value", (snapshot) => {
+            if (snapshot.val() === true) {
+              addStatus("✅ Conectado ao Firebase!", "success");
+            } else {
+              addStatus("❌ Desconectado do Firebase", "error");
+            }
+          });
+        } catch (error) {
+          addStatus("❌ Erro ao verificar conexão", "error", error.message);
+        }
+      }
+
+      async function verificarAutenticacao() {
+        limparResultados();
+        addStatus("Verificando autenticação...", "info");
+
+        const user = auth.currentUser;
+        if (user) {
+          addStatus(
+            "✅ Usuário autenticado!",
+            "success",
+            `Email: ${user.email}\nUID: ${user.uid}`,
+          );
+        } else {
+          addStatus(
+            "❌ Usuário NÃO autenticado!",
+            "error",
+            "Você precisa fazer login no painel admin primeiro.\n\n1. Abra admin.html em outra aba\n2. Faça login\n3. Volte aqui e teste novamente",
+          );
+        }
+      }
+
+      async function listarProdutos() {
+        limparResultados();
+        addStatus("Carregando produtos do Firebase...", "info");
+
+        try {
+          const produtos = await loadProducts();
+          if (produtos.length > 0) {
+            addStatus(`✅ ${produtos.length} produtos encontrados!`, "success");
+            const produtosHTML = produtos
+              .map(
+                (p) =>
+                  `<div style="background: white; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 4px solid #667eea;">
+                            <strong>${p.nome}</strong> - R$ ${p.preco.toFixed(2)} (${p.status})<br>
+                            <small>ID: ${p.id}</small>
+                        </div>`,
+              )
+              .join("");
+            results.innerHTML =
+              "<h3>📦 Produtos no Firebase:</h3>" + produtosHTML;
+          } else {
+            addStatus(
+              "⚠️ Nenhum produto encontrado",
+              "warning",
+              "O Firebase está vazio. Adicione produtos pelo painel admin.",
+            );
+          }
+        } catch (error) {
+          addStatus(
+            "❌ Erro ao listar produtos",
+            "error",
+            `${error.code}\n${error.message}`,
+          );
+        }
+      }
+
+      // Teste de adicionar produto
+      document
+        .getElementById("testForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          limparResultados();
+
+          const btnTest = document.getElementById("btnTest");
+          btnTest.disabled = true;
+          btnTest.innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i> Adicionando...';
+
+          addStatus("🔵 Iniciando teste de adicionar produto...", "info");
+
+          // Verifica autenticação primeiro
+          const user = auth.currentUser;
+          if (!user) {
+            addStatus(
+              "❌ Você precisa estar logado!",
+              "error",
+              "Abra admin.html e faça login primeiro.",
+            );
+            btnTest.disabled = false;
+            btnTest.innerHTML = "➕ Adicionar Produto de Teste";
+            return;
+          }
+
+          const productData = {
+            nome: document.getElementById("testNome").value,
+            descricao: document.getElementById("testDesc").value,
+            preco: parseFloat(document.getElementById("testPreco").value),
+            imagem: document.getElementById("testImagem").value,
+            status: document.getElementById("testStatus").value,
+          };
+
+          console.log("📦 Dados do produto:", productData);
+
+          try {
+            const newId = await addProduct(productData);
+            addStatus(
+              "✅ SUCESSO! Produto adicionado!",
+              "success",
+              `ID do novo produto: ${newId}`,
+            );
+
+            setTimeout(() => {
+              addStatus(
+                "🔄 Aguarde... Verificando se apareceu no Firebase...",
+                "info",
+              );
+              setTimeout(listarProdutos, 2000);
+            }, 1000);
+          } catch (error) {
+            console.error("❌ Erro:", error);
+            addStatus(
+              "❌ ERRO ao adicionar produto!",
+              "error",
+              `Código: ${error.code}\nMensagem: ${error.message}`,
+            );
+
+            if (error.code === "PERMISSION_DENIED") {
+              addStatus(
+                "🚫 Permissão Negada!",
+                "error",
+                "As regras do Firebase não estão configuradas.\n\nVeja o arquivo CONFIGURACAO_FIREBASE.md",
+              );
+            }
+          } finally {
+            btnTest.disabled = false;
+            btnTest.innerHTML = "➕ Adicionar Produto de Teste";
+          }
+        });
+
+      // Auto verificação inicial
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          addStatus(
+            "🚀 Diagnóstico carregado! Clique nos botões para testar.",
+            "info",
+          );
+          verificarAutenticacao();
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>

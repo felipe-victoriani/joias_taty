@@ -583,22 +583,29 @@ async function handleFormSubmit(e) {
     !productData.preco ||
     !productData.imagem
   ) {
-    showToast("Preencha todos os campos obrigatórios", "error");
+    showToast("❌ Preencha todos os campos obrigatórios", "error");
     return;
   }
 
   try {
+    console.log("🔵 Iniciando envio do formulário...");
+    console.log("📦 Dados a serem salvos:", productData);
+
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
 
     if (currentEditingId) {
       // Atualizar produto existente
+      console.log("✏️ Atualizando produto ID:", currentEditingId);
       await updateProduct(currentEditingId, productData);
+      console.log("✅ Produto atualizado com sucesso!");
       showToast("✓ Produto atualizado com sucesso!", "success");
     } else {
       // Adicionar novo produto
-      await addProduct(productData);
+      console.log("➕ Adicionando novo produto...");
+      const newId = await addProduct(productData);
+      console.log("✅ Produto adicionado! Novo ID:", newId);
       showToast("✓ Produto adicionado com sucesso!", "success");
     }
 
@@ -607,8 +614,19 @@ async function handleFormSubmit(e) {
     submitBtn.disabled = false;
     submitBtn.innerHTML = "Salvar";
   } catch (error) {
-    console.error("Erro ao salvar produto:", error);
-    showToast("✗ Erro ao salvar produto. Tente novamente.", "error");
+    console.error("❌ ERRO ao salvar produto:", error);
+
+    let errorMessage = "✗ Erro ao salvar produto. ";
+
+    if (error.code === "PERMISSION_DENIED") {
+      errorMessage += "Permissão negada! Verifique as regras do Firebase.";
+    } else if (error.message) {
+      errorMessage += error.message;
+    } else {
+      errorMessage += "Tente novamente.";
+    }
+
+    showToast(errorMessage, "error");
 
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = false;

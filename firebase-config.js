@@ -29,17 +29,22 @@ let productsRef;
 try {
   firebase.initializeApp(firebaseConfig);
 
-  // Referência ao Firebase Auth
-  auth = firebase.auth();
-
-  // Referência ao Realtime Database
+  // Referência ao Realtime Database (essencial para o catálogo)
   database = firebase.database();
-
-  // Referência à coleção de produtos
   productsRef = database.ref("produtos");
-
-  // Log de inicialização
   console.log("🔥 Firebase Realtime Database inicializado com sucesso!");
+
+  // Referência ao Firebase Auth (necessário apenas para o admin)
+  try {
+    auth = firebase.auth();
+    console.log("🔐 Firebase Auth inicializado com sucesso!");
+  } catch (authError) {
+    console.warn(
+      "⚠️ Firebase Auth não disponível nesta página (normal no catálogo):",
+      authError.message,
+    );
+  }
+
   console.log("📋 Configuração:");
   console.log("   - Project ID:", firebaseConfig.projectId);
   console.log("   - Database URL:", firebaseConfig.databaseURL);
@@ -95,22 +100,53 @@ async function loadProducts() {
  */
 async function addProduct(productData) {
   try {
+    console.log("🔵 Iniciando adição de produto...");
+    console.log("📦 Dados do produto:", productData);
+
+    // Verifica autenticação
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error("❌ Usuário não autenticado! Faça login primeiro.");
+    }
+    console.log("✅ Usuário autenticado:", currentUser.email);
+
+    // Verifica se productsRef existe
+    if (!productsRef) {
+      throw new Error("❌ Referência ao Firebase não inicializada!");
+    }
+    console.log("✅ Referência ao Firebase OK");
+
     // Cria uma nova referência com ID único
     const newProductRef = productsRef.push();
+    console.log("🆔 ID gerado:", newProductRef.key);
 
-    await newProductRef.set({
+    const productToSave = {
       nome: productData.nome,
       descricao: productData.descricao,
       preco: parseFloat(productData.preco),
       imagem: productData.imagem,
       status: productData.status,
       criadoEm: firebase.database.ServerValue.TIMESTAMP,
-    });
+    };
 
-    console.log("✅ Produto adicionado com ID:", newProductRef.key);
+    console.log("💾 Salvando produto no Firebase...");
+    await newProductRef.set(productToSave);
+
+    console.log("✅ Produto adicionado com sucesso! ID:", newProductRef.key);
     return newProductRef.key;
   } catch (error) {
-    console.error("❌ Erro ao adicionar produto:", error);
+    console.error("❌ ERRO ao adicionar produto:", error);
+    console.error("📋 Código do erro:", error.code);
+    console.error("📋 Mensagem:", error.message);
+
+    if (error.code === "PERMISSION_DENIED") {
+      console.error("🚫 PERMISSÃO NEGADA!");
+      console.error("💡 Verifique:");
+      console.error("   1. Você está logado no admin?");
+      console.error("   2. As regras do Firebase estão configuradas?");
+      console.error("   3. Veja CONFIGURACAO_FIREBASE.md");
+    }
+
     throw error;
   }
 }

@@ -119,14 +119,30 @@ async function initializeApp() {
       console.log("✅ Sistema inicializado - produtos carregados do Firebase");
     } catch (firebaseError) {
       console.error("❌ Erro ao carregar produtos do Firebase:", firebaseError);
-      console.error("💡 Soluções:");
-      console.error("   1. Verifique sua conexão com a internet");
-      console.error(
-        "   2. Configure as regras do Firebase (veja CONFIGURACAO_FIREBASE.md)",
-      );
-      console.error("   3. Adicione produtos pelo painel admin (admin.html)");
+      console.error("💡 Código do erro:", firebaseError.code);
+      console.error("💡 Mensagem:", firebaseError.message);
 
-      // Mostra mensagem de erro amigável
+      if (firebaseError.code === "PERMISSION_DENIED") {
+        console.error(
+          "🚫 CAUSA: As regras do Firebase bloqueiam leitura pública!",
+        );
+        console.error(
+          "🔧 SOLUÇÃO: Acesse https://console.firebase.google.com/",
+        );
+        console.error("          → Realtime Database → Regras → Cole:");
+        console.error(
+          '          { "rules": { "produtos": { ".read": true, ".write": "auth != null" } } }',
+        );
+        console.error("          → Clique em PUBLICAR");
+      } else if (!firebaseError.code) {
+        console.error(
+          "🚫 CAUSA PROVÁVEL: SDK do Firebase Auth não estava carregado no index.html",
+        );
+        console.error(
+          "🔧 SOLUÇÃO: Já foi corrigido! Recarregue a página com Ctrl+F5",
+        );
+      }
+
       renderProducts([]);
       showLoading(false);
       showError(
@@ -265,26 +281,52 @@ function setupMobileEnhancements() {
 async function loadProductsFromFirebase() {
   try {
     console.log("📱 Carregando produtos do Firebase Realtime Database...");
+    console.log(
+      "🌐 URL do banco:",
+      "https://cachinhos-dourados-default-rtdb.firebaseio.com/",
+    );
 
     // Carrega produtos do Firebase
+    console.log("📥 Fazendo primeira leitura dos produtos...");
     const firebaseProducts = await loadProducts();
+    console.log("📦 Resultado da leitura:", firebaseProducts);
 
     if (firebaseProducts && firebaseProducts.length > 0) {
       products = firebaseProducts;
-      renderProducts(products);
       console.log("✅ Produtos carregados do Firebase:", products.length);
+      console.log(
+        "📋 Lista de produtos:",
+        products.map((p) => `${p.id}: ${p.nome}`).join(", "),
+      );
+
+      renderProducts(products);
+      console.log("✅ Produtos renderizados na tela!");
     } else {
       console.log("⚠️ Nenhum produto encontrado no Firebase");
       console.log("💡 Adicione produtos pelo painel admin em: admin.html");
+      console.log(
+        "💡 Ou verifique se as regras do Firebase permitem leitura pública",
+      );
       renderProducts([]); // Mostra página vazia
     }
 
     // Escuta mudanças em tempo real
+    console.log("👂 Configurando listener de tempo real...");
     const unsubscribe = listenToProducts((updatedProducts) => {
+      console.log(
+        "🔔 Listener ativado! Produtos recebidos:",
+        updatedProducts.length,
+      );
+
       if (updatedProducts && updatedProducts.length > 0) {
         products = updatedProducts;
-        renderProducts(products);
         console.log("🔄 Produtos atualizados em tempo real:", products.length);
+        console.log(
+          "📋 Produtos atualizados:",
+          updatedProducts.map((p) => p.nome).join(", "),
+        );
+        renderProducts(products);
+        console.log("✅ Tela atualizada com novos produtos!");
       } else {
         // Se não há produtos, mostra página vazia
         products = [];
@@ -295,14 +337,29 @@ async function loadProductsFromFirebase() {
 
     // Salva a função para cancelar escuta se necessário
     window.unsubscribeProducts = unsubscribe;
+    console.log("✅ Listener de tempo real configurado com sucesso!");
 
     showLoading(false);
   } catch (error) {
     console.error("❌ Erro ao carregar produtos do Firebase:", error);
+    console.error("💡 Código do erro:", error.code);
+    console.error("💡 Mensagem:", error.message);
+
+    if (error.code === "PERMISSION_DENIED") {
+      console.error("🚫 PERMISSÃO NEGADA!");
+      console.error("💡 As regras do Firebase não permitem leitura pública!");
+      console.error("💡 Solução:");
+      console.error("   1. Abra: https://console.firebase.google.com/");
+      console.error("   2. Vá em Realtime Database → Regras");
+      console.error("   3. Configure: .read: true para produtos");
+      console.error("   4. Veja o arquivo CONFIGURACAO_FIREBASE.md");
+      console.error("   5. Abra diagnostico-catalogo.html para ajuda");
+    }
+
     console.error("💡 Verifique:");
     console.error("   1. As regras do Firebase estão configuradas?");
     console.error("   2. Veja o arquivo CONFIGURACAO_FIREBASE.md");
-    console.error("   3. Abra teste-firebase.html para diagnóstico");
+    console.error("   3. Abra diagnostico-catalogo.html para diagnóstico");
     showLoading(false);
     throw error;
   }
@@ -312,9 +369,23 @@ async function loadProductsFromFirebase() {
  * Renderiza os produtos na página
  */
 function renderProducts(productsArray) {
+  console.log("🎨 Renderizando produtos na tela...");
+  console.log(
+    "📊 Quantidade de produtos a renderizar:",
+    productsArray ? productsArray.length : 0,
+  );
+
   const productsGrid = document.getElementById("productsGrid");
 
+  if (!productsGrid) {
+    console.error("❌ Elemento 'productsGrid' não encontrado no HTML!");
+    return;
+  }
+
+  console.log("✅ Elemento productsGrid encontrado");
+
   if (!productsArray || productsArray.length === 0) {
+    console.log("⚠️ Nenhum produto para exibir - mostrando mensagem vazia");
     productsGrid.innerHTML = `
             <div class="no-products">
                 <i class="fas fa-box-open"></i>
@@ -324,7 +395,8 @@ function renderProducts(productsArray) {
     return;
   }
 
-  productsGrid.innerHTML = productsArray
+  console.log("🔨 Gerando HTML dos produtos...");
+  const productHTML = productsArray
     .map(
       (product) => `
         <div class="product-card fade-in-scroll">
@@ -350,8 +422,16 @@ function renderProducts(productsArray) {
     )
     .join("");
 
+  productsGrid.innerHTML = productHTML;
+  console.log("✅ HTML dos produtos inserido no DOM!");
+  console.log(
+    "📦 Produtos renderizados:",
+    productsArray.map((p) => p.nome).join(", "),
+  );
+
   // Reaplica animações de scroll
   setupScrollAnimations();
+  console.log("✅ Animações de scroll configuradas!");
 }
 
 // ========================================

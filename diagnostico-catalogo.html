@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🔍 Diagnóstico - Catálogo</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .status-box {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .status-box.info {
+        background: #e3f2fd;
+        color: #1565c0;
+        border-left: 4px solid #1565c0;
+      }
+      .status-box.success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border-left: 4px solid #2e7d32;
+      }
+      .status-box.error {
+        background: #ffebee;
+        color: #c62828;
+        border-left: 4px solid #c62828;
+      }
+      .status-box.warning {
+        background: #fff3e0;
+        color: #e65100;
+        border-left: 4px solid #e65100;
+      }
+      .status-box i {
+        font-size: 20px;
+        margin-top: 2px;
+        flex-shrink: 0;
+      }
+      button {
+        background: #f5576c;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px 5px;
+        transition: all 0.3s;
+      }
+      button:hover {
+        background: #d63447;
+        transform: translateY(-2px);
+      }
+      pre {
+        background: #f4f4f4;
+        padding: 15px;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 10px 0;
+        font-size: 12px;
+      }
+      .product-card {
+        background: #f8f9fa;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        border-left: 4px solid #f5576c;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      .product-card img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 5px;
+      }
+      .product-info {
+        flex: 1;
+      }
+      .product-info h4 {
+        color: #333;
+        margin-bottom: 5px;
+      }
+      .product-info p {
+        color: #666;
+        font-size: 14px;
+      }
+      .instructions {
+        background: #fff3cd;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        border-left: 4px solid #ffc107;
+      }
+      .instructions h3 {
+        color: #856404;
+        margin-bottom: 10px;
+      }
+      .instructions ol {
+        margin-left: 20px;
+        color: #856404;
+      }
+      .instructions li {
+        margin: 8px 0;
+      }
+      .code-block {
+        background: #263238;
+        color: #aed581;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        overflow-x: auto;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔍 Diagnóstico do Catálogo</h1>
+      <p style="text-align: center; color: #666; margin-bottom: 20px">
+        Descobrindo por que os produtos não aparecem na página principal...
+      </p>
+
+      <div id="statusContainer"></div>
+
+      <div class="instructions">
+        <h3>⚠️ Problema Mais Comum: Regras do Firebase</h3>
+        <p>
+          <strong
+            >Se você vê produtos no admin mas NÃO no catálogo, provavelmente as
+            regras não estão configuradas!</strong
+          >
+        </p>
+        <ol>
+          <li>
+            Acesse:
+            <a href="https://console.firebase.google.com/" target="_blank"
+              >Firebase Console</a
+            >
+          </li>
+          <li>
+            Vá em <strong>Realtime Database</strong> → <strong>Regras</strong>
+          </li>
+          <li>Cole este código:</li>
+        </ol>
+        <div class="code-block">
+          {<br />
+          "rules": {<br />
+          "produtos": {<br />
+          ".read": true,<br />
+          ".write": "auth != null"<br />
+          }<br />
+          }<br />
+          }
+        </div>
+        <ol start="4">
+          <li>
+            <strong>IMPORTANTE:</strong> Clique em
+            <strong>PUBLICAR</strong> (não basta só colar!)
+          </li>
+          <li>Volte aqui e clique em "🔄 Testar Novamente"</li>
+        </ol>
+      </div>
+
+      <button onclick="testarTudo()">🔍 Executar Diagnóstico Completo</button>
+      <button onclick="testarLeituraFirebase()">
+        📖 Testar Leitura do Firebase
+      </button>
+      <button onclick="listarProdutos()">📦 Listar Produtos</button>
+      <button onclick="verificarRegras()">⚙️ Verificar Regras</button>
+      <button onclick="limpar()">🗑️ Limpar</button>
+
+      <div id="productsContainer"></div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+      const statusContainer = document.getElementById("statusContainer");
+      const productsContainer = document.getElementById("productsContainer");
+
+      function addStatus(message, type = "info", details = "") {
+        const icons = {
+          info: "fa-info-circle",
+          success: "fa-check-circle",
+          error: "fa-times-circle",
+          warning: "fa-exclamation-triangle",
+        };
+        const statusDiv = document.createElement("div");
+        statusDiv.className = `status-box ${type}`;
+        statusDiv.innerHTML = `
+                <i class="fas ${icons[type]}"></i>
+                <div style="flex: 1;">
+                    <strong>${message}</strong>
+                    ${details ? `<pre>${details}</pre>` : ""}
+                </div>
+            `;
+        statusContainer.appendChild(statusDiv);
+      }
+
+      function limpar() {
+        statusContainer.innerHTML = "";
+        productsContainer.innerHTML = "";
+      }
+
+      async function testarTudo() {
+        limpar();
+        addStatus("🚀 Iniciando diagnóstico completo...", "info");
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await verificarFirebase();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await testarConexao();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await testarLeituraFirebase();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await listarProdutos();
+      }
+
+      async function verificarFirebase() {
+        addStatus("1️⃣ Verificando se Firebase está carregado...", "info");
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        if (typeof firebase !== "undefined" && firebase.database) {
+          addStatus("✅ Firebase SDK carregado com sucesso!", "success");
+          return true;
+        } else {
+          addStatus(
+            "❌ Firebase SDK NÃO encontrado!",
+            "error",
+            "Verifique se os scripts do Firebase estão carregando no index.html",
+          );
+          return false;
+        }
+      }
+
+      async function testarConexao() {
+        addStatus("2️⃣ Testando conexão com Firebase...", "info");
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        try {
+          const connectedRef = database.ref(".info/connected");
+          return new Promise((resolve) => {
+            connectedRef.once("value", (snapshot) => {
+              if (snapshot.val() === true) {
+                addStatus("✅ Conectado ao Firebase!", "success");
+                resolve(true);
+              } else {
+                addStatus(
+                  "❌ Desconectado do Firebase",
+                  "error",
+                  "Verifique sua conexão com a internet",
+                );
+                resolve(false);
+              }
+            });
+          });
+        } catch (error) {
+          addStatus("❌ Erro ao verificar conexão", "error", error.message);
+          return false;
+        }
+      }
+
+      async function testarLeituraFirebase() {
+        addStatus("3️⃣ Testando LEITURA de produtos do Firebase...", "info");
+        addStatus("⏳ Aguarde...", "info");
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        try {
+          console.log("📥 Tentando ler produtos...");
+          const snapshot = await productsRef.once("value");
+          const data = snapshot.val();
+
+          console.log("📦 Dados recebidos:", data);
+
+          if (data) {
+            const count = Object.keys(data).length;
+            addStatus(
+              `✅ SUCESSO! Consegui ler ${count} produtos do Firebase!`,
+              "success",
+              "Isso significa que as REGRAS estão CORRETAS! ✓",
+            );
+            return true;
+          } else {
+            addStatus(
+              "⚠️ Firebase está vazio (sem produtos)",
+              "warning",
+              "Adicione produtos pelo painel admin: admin.html",
+            );
+            return false;
+          }
+        } catch (error) {
+          console.error("❌ Erro ao ler:", error);
+
+          if (error.code === "PERMISSION_DENIED") {
+            addStatus(
+              "❌ ERRO: PERMISSÃO NEGADA!",
+              "error",
+              `Código: ${error.code}\n\n` +
+                "🔴 O PROBLEMA ESTÁ NAS REGRAS DO FIREBASE!\n\n" +
+                "Você precisa configurar as regras para permitir LEITURA pública.\n\n" +
+                "Veja a caixa amarela acima com as instruções completas.",
+            );
+          } else {
+            addStatus(
+              "❌ Erro ao tentar ler produtos",
+              "error",
+              `Código: ${error.code || "desconhecido"}\n` +
+                `Mensagem: ${error.message}`,
+            );
+          }
+          return false;
+        }
+      }
+
+      async function verificarRegras() {
+        limpar();
+        addStatus("⚙️ Verificando regras do Firebase...", "info");
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        addStatus("ℹ️ Testando se consigo LER produtos...", "info");
+
+        try {
+          await productsRef.once("value");
+          addStatus(
+            "✅ Regras de LEITURA estão CORRETAS!",
+            "success",
+            'A regra ".read": true está funcionando',
+          );
+        } catch (error) {
+          if (error.code === "PERMISSION_DENIED") {
+            addStatus(
+              "❌ Regras de LEITURA NÃO configuradas!",
+              "error",
+              "Configure conforme as instruções acima",
+            );
+          } else {
+            addStatus("❌ Erro ao verificar regras", "error", error.message);
+          }
+        }
+      }
+
+      async function listarProdutos() {
+        limpar();
+        addStatus("4️⃣ Listando produtos do Firebase...", "info");
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        try {
+          const produtos = await loadProducts();
+
+          if (produtos.length > 0) {
+            addStatus(`✅ ${produtos.length} produtos encontrados!`, "success");
+
+            productsContainer.innerHTML =
+              '<h3 style="margin: 20px 0;">📦 Produtos no Firebase:</h3>';
+
+            produtos.forEach((produto) => {
+              const card = document.createElement("div");
+              card.className = "product-card";
+              card.innerHTML = `
+                            <img src="${produto.imagem}" alt="${produto.nome}" onerror="this.src='https://via.placeholder.com/80'">
+                            <div class="product-info">
+                                <h4>${produto.nome}</h4>
+                                <p>Preço: R$ ${produto.preco.toFixed(2)} | Status: ${produto.status}</p>
+                                <small style="color: #999;">ID: ${produto.id}</small>
+                            </div>
+                        `;
+              productsContainer.appendChild(card);
+            });
+
+            addStatus(
+              "✅ Se você vê os produtos acima, o Firebase está OK!",
+              "success",
+              "Se não aparecem no index.html, pode ser problema de cache.\n" +
+                "Solução: Pressione Ctrl + Shift + Delete e limpe o cache.",
+            );
+          } else {
+            addStatus(
+              "⚠️ Nenhum produto encontrado",
+              "warning",
+              "O Firebase está vazio. Adicione produtos pelo admin.html",
+            );
+          }
+        } catch (error) {
+          console.error("Erro:", error);
+
+          if (error.code === "PERMISSION_DENIED") {
+            addStatus(
+              "❌ PERMISSÃO NEGADA ao listar produtos!",
+              "error",
+              "🔴 Configure as regras do Firebase conforme as instruções acima!",
+            );
+          } else {
+            addStatus(
+              "❌ Erro ao listar produtos",
+              "error",
+              `Código: ${error.code}\nMensagem: ${error.message}`,
+            );
+          }
+        }
+      }
+
+      // Auto-execução ao carregar
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          addStatus(
+            "👋 Bem-vindo ao Diagnóstico do Catálogo!",
+            "info",
+            'Clique em "🔍 Executar Diagnóstico Completo" para começar.',
+          );
+        }, 500);
+      });
+    </script>
+  </body>
+</html>
