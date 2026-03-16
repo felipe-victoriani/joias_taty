@@ -20,18 +20,23 @@ const firebaseConfig = {
   appId: "1:411652937366:web:569aee4f6664222c8f54b7",
 };
 
+// Variáveis globais do Firebase
+let auth;
+let database;
+let productsRef;
+
 // Inicializar Firebase
 try {
   firebase.initializeApp(firebaseConfig);
 
   // Referência ao Firebase Auth
-  const auth = firebase.auth();
+  auth = firebase.auth();
 
   // Referência ao Realtime Database
-  const database = firebase.database();
+  database = firebase.database();
 
   // Referência à coleção de produtos
-  const productsRef = database.ref("produtos");
+  productsRef = database.ref("produtos");
 
   // Log de inicialização
   console.log("🔥 Firebase Realtime Database inicializado com sucesso!");

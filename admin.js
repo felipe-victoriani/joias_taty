@@ -117,22 +117,34 @@ async function handleLogout() {
  * Mostra o painel de login
  */
 function showLoginPanel() {
-  const loginContainer = document.querySelector(".login-container");
-  const adminContainer = document.querySelector(".admin-container");
+  const loginContainer = document.getElementById("loginContainer");
+  const adminContent = document.getElementById("adminContent");
 
-  if (loginContainer) loginContainer.style.display = "flex";
-  if (adminContainer) adminContainer.style.display = "none";
+  if (loginContainer) {
+    loginContainer.style.display = "flex";
+    loginContainer.classList.remove("hidden");
+  }
+  if (adminContent) {
+    adminContent.style.display = "none";
+    adminContent.classList.add("hidden");
+  }
 }
 
 /**
  * Mostra o painel administrativo
  */
 function showAdminPanel() {
-  const loginContainer = document.querySelector(".login-container");
-  const adminContainer = document.querySelector(".admin-container");
+  const loginContainer = document.getElementById("loginContainer");
+  const adminContent = document.getElementById("adminContent");
 
-  if (loginContainer) loginContainer.style.display = "none";
-  if (adminContainer) adminContainer.style.display = "block";
+  if (loginContainer) {
+    loginContainer.style.display = "none";
+    loginContainer.classList.add("hidden");
+  }
+  if (adminContent) {
+    adminContent.style.display = "block";
+    adminContent.classList.remove("hidden");
+  }
 
   // Atualizar email do usuário no header
   const userEmail = document.getElementById("userEmail");
@@ -182,35 +194,61 @@ function setupAdminEventListeners() {
     });
   });
 
-  // Botões de adicionar produto
-  document.getElementById("btnShowAdd").addEventListener("click", () => {
-    switchSection("adicionar");
-    resetForm();
-  });
+  // Botão de adicionar produto
+  const addProductBtn = document.getElementById("addProductBtn");
+  if (addProductBtn) {
+    addProductBtn.addEventListener("click", () => {
+      openProductModal();
+    });
+  }
+
+  // Botão de fechar modal
+  const closeModal = document.getElementById("closeModal");
+  if (closeModal) {
+    closeModal.addEventListener("click", closeProductModal);
+  }
+
+  // Botão cancelar
+  const cancelBtn = document.getElementById("cancelBtn");
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", closeProductModal);
+  }
 
   // Formulário
-  document
-    .getElementById("productForm")
-    .addEventListener("submit", handleFormSubmit);
-  document
-    .getElementById("btnCancel")
-    .addEventListener("click", handleCancelForm);
+  const productForm = document.getElementById("productForm");
+  if (productForm) {
+    productForm.addEventListener("submit", handleFormSubmit);
+  }
 
-  // Preview da imagem
-  document
-    .getElementById("productImage")
-    .addEventListener("input", handleImagePreview);
+  // Tabs de imagem
+  const uploadTab = document.getElementById("uploadTab");
+  const urlTab = document.getElementById("urlTab");
 
-  // Modal de confirmação
-  document
-    .getElementById("btnCancelDelete")
-    .addEventListener("click", closeDeleteModal);
-  document
-    .getElementById("btnConfirmDelete")
-    .addEventListener("click", confirmDelete);
-  document
-    .getElementById("modalOverlay")
-    .addEventListener("click", closeDeleteModal);
+  if (uploadTab) {
+    uploadTab.addEventListener("click", () => switchImageTab("upload"));
+  }
+
+  if (urlTab) {
+    urlTab.addEventListener("click", () => switchImageTab("url"));
+  }
+
+  // Upload de imagem
+  const selectImageBtn = document.getElementById("selectImageBtn");
+  const productImageFile = document.getElementById("productImageFile");
+
+  if (selectImageBtn && productImageFile) {
+    selectImageBtn.addEventListener("click", () => {
+      productImageFile.click();
+    });
+
+    productImageFile.addEventListener("change", handleImageUpload);
+  }
+
+  // Preview de URL de imagem
+  const productImage = document.getElementById("productImage");
+  if (productImage) {
+    productImage.addEventListener("input", handleImageUrlPreview);
+  }
 }
 
 // ========================================
@@ -245,13 +283,98 @@ function switchSection(sectionName) {
 // ========================================
 
 /**
+ * Abre o modal de produto
+ */
+function openProductModal(productId = null) {
+  const modal = document.getElementById("productModal");
+  const modalTitle = document.getElementById("modalTitle");
+
+  currentEditingId = productId;
+
+  if (productId) {
+    modalTitle.textContent = "Editar Produto";
+    loadProductToForm(productId);
+  } else {
+    modalTitle.textContent = "Adicionar Produto";
+    document.getElementById("productForm").reset();
+  }
+
+  modal.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+/**
+ * Fecha o modal de produto
+ */
+function closeProductModal() {
+  const modal = document.getElementById("productModal");
+  modal.classList.remove("active");
+  document.body.style.overflow = "";
+  currentEditingId = null;
+  currentImageData = null; // Limpa a imagem atual
+  document.getElementById("productForm").reset();
+  document.getElementById("imagePreview").style.display = "none";
+  document.getElementById("fileName").textContent =
+    "Nenhum arquivo selecionado";
+  document.getElementById("fileName").classList.remove("has-file");
+
+  // Reseta para a tab de upload
+  switchImageTab("upload");
+}
+
+/**
+ * Carrega produto no formulário para edição
+ */
+async function loadProductToForm(productId) {
+  try {
+    const products = await loadProducts();
+    const product = products.find((p) => p.id === productId);
+
+    if (!product) {
+      showToast("Produto não encontrado", "error");
+      return;
+    }
+
+    document.getElementById("productName").value = product.nome;
+    document.getElementById("productDescription").value = product.descricao;
+    document.getElementById("productPrice").value = product.preco;
+    document.getElementById("productStatus").value = product.status;
+
+    // Carrega a imagem
+    currentImageData = product.imagem;
+
+    // Verifica se é base64 ou URL
+    if (product.imagem.startsWith("data:image")) {
+      // É uma imagem base64 (upload)
+      switchImageTab("upload");
+      document.getElementById("fileName").textContent =
+        "Arquivo carregado anteriormente";
+      document.getElementById("fileName").classList.add("has-file");
+    } else {
+      // É uma URL
+      switchImageTab("url");
+      document.getElementById("productImage").value = product.imagem;
+    }
+
+    // Mostra preview
+    const preview = document.getElementById("imagePreview");
+    const previewImg = document.getElementById("previewImg");
+    previewImg.src = product.imagem;
+    preview.style.display = "block";
+  } catch (error) {
+    console.error("Erro ao carregar produto:", error);
+    showToast("Erro ao carregar produto", "error");
+  }
+}
+
+/**
  * Carrega produtos no admin
  */
 async function loadAdminProducts() {
   try {
     console.log("📱 Carregando produtos no painel admin...");
 
-    // Inicializa produtos de exemplo se necessário (mesma função do firebase-config.js)
+    // Inicializa produtos de exemplo se necessário
     await initializeExampleProducts();
 
     const products = await loadProducts();
@@ -271,53 +394,162 @@ async function loadAdminProducts() {
 }
 
 /**
- * Renderiza produtos na lista do admin
+ * Renderiza produtos na tabela do admin
  */
 function renderAdminProducts(products) {
-  const productsList = document.getElementById("productsList");
+  const tableBody = document.getElementById("productsTableBody");
+  const tableContainer = document.getElementById("productsTableContainer");
 
   if (!products || products.length === 0) {
-    productsList.innerHTML = `
-            <div class="no-products">
-                <i class="fas fa-box-open"></i>
-                <p>Nenhum produto cadastrado.</p>
-                <button class="btn-add" onclick="switchSection('adicionar')">
-                    <i class="fas fa-plus"></i> Adicionar Primeiro Produto
-                </button>
-            </div>
-        `;
+    tableContainer.innerHTML = `
+      <div class="no-products">
+        <i class="fas fa-box-open"></i>
+        <p>Nenhum produto cadastrado.</p>
+        <button class="btn-primary" onclick="openProductModal()">
+          <i class="fas fa-plus"></i> Adicionar Primeiro Produto
+        </button>
+      </div>
+    `;
     return;
   }
 
-  productsList.innerHTML = products
+  tableBody.innerHTML = products
     .map(
       (product) => `
-        <div class="product-item">
-            <img src="${product.imagem}" alt="${product.nome}" class="product-item-image">
-            
-            <div class="product-item-info">
-                <div class="product-item-header">
-                    <h3 class="product-item-name">${product.nome}</h3>
-                    <span class="status-badge ${product.status}">
-                        ${product.status === "disponivel" ? "Disponível" : "Esgotado"}
-                    </span>
-                </div>
-                <p class="product-item-description">${product.descricao}</p>
-                <p class="product-item-price">R$ ${formatPrice(product.preco)}</p>
+        <tr>
+          <td>
+            <img src="${product.imagem}" alt="${product.nome}" class="product-thumb">
+          </td>
+          <td><strong>${product.nome}</strong></td>
+          <td>R$ ${formatPrice(product.preco)}</td>
+          <td>
+            <span class="status-badge ${product.status}">
+              ${product.status === "disponivel" ? "✓ Disponível" : "✗ Esgotado"}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon btn-edit" onclick="openProductModal('${product.id}')" title="Editar">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon btn-delete" onclick="deleteProductConfirm('${product.id}')" title="Excluir">
+                <i class="fas fa-trash"></i>
+              </button>
             </div>
-            
-            <div class="product-item-actions">
-                <button class="btn-icon btn-edit" onclick="editProduct('${product.id}')" title="Editar">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon btn-delete" onclick="showDeleteModal('${product.id}')" title="Excluir">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </div>
-    `,
+          </td>
+        </tr>
+      `,
     )
     .join("");
+}
+
+// ========================================
+// GERENCIAMENTO DE IMAGENS
+// ========================================
+
+let currentImageData = null; // Armazena a imagem atual (base64 ou URL)
+
+/**
+ * Alterna entre as tabs de upload e URL
+ */
+function switchImageTab(tabType) {
+  const uploadTab = document.getElementById("uploadTab");
+  const urlTab = document.getElementById("urlTab");
+  const uploadContent = document.getElementById("uploadContent");
+  const urlContent = document.getElementById("urlContent");
+
+  if (tabType === "upload") {
+    uploadTab.classList.add("active");
+    urlTab.classList.remove("active");
+    uploadContent.classList.add("active");
+    urlContent.classList.remove("active");
+  } else {
+    urlTab.classList.add("active");
+    uploadTab.classList.remove("active");
+    urlContent.classList.add("active");
+    uploadContent.classList.remove("active");
+  }
+}
+
+/**
+ * Manipula o upload de imagem do arquivo
+ */
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+
+  if (!file) return;
+
+  // Verifica se é uma imagem
+  if (!file.type.startsWith("image/")) {
+    showToast("❌ Por favor, selecione apenas imagens", "error");
+    return;
+  }
+
+  // Verifica o tamanho (máx 2MB)
+  const maxSize = 2 * 1024 * 1024; // 2MB
+  if (file.size > maxSize) {
+    showToast("❌ Imagem muito grande. Máximo: 2MB", "error");
+    return;
+  }
+
+  // Atualiza o nome do arquivo
+  const fileName = document.getElementById("fileName");
+  fileName.textContent = file.name;
+  fileName.classList.add("has-file");
+
+  // Lê e converte a imagem para base64
+  const reader = new FileReader();
+
+  reader.onload = function (event) {
+    const base64Image = event.target.result;
+    currentImageData = base64Image;
+
+    // Mostra preview
+    const preview = document.getElementById("imagePreview");
+    const previewImg = document.getElementById("previewImg");
+
+    previewImg.src = base64Image;
+    preview.style.display = "block";
+
+    console.log("✅ Imagem carregada com sucesso!");
+  };
+
+  reader.onerror = function () {
+    showToast("❌ Erro ao carregar imagem", "error");
+  };
+
+  reader.readAsDataURL(file);
+}
+
+/**
+ * Manipula o preview da URL da imagem
+ */
+function handleImageUrlPreview(e) {
+  const imageUrl = e.target.value.trim();
+
+  if (!imageUrl) {
+    document.getElementById("imagePreview").style.display = "none";
+    currentImageData = null;
+    return;
+  }
+
+  currentImageData = imageUrl;
+
+  const preview = document.getElementById("imagePreview");
+  const previewImg = document.getElementById("previewImg");
+
+  previewImg.src = imageUrl;
+  preview.style.display = "block";
+
+  // Verifica se a imagem carrega
+  previewImg.onerror = () => {
+    preview.style.display = "none";
+    showToast("⚠️ Não foi possível carregar a imagem desta URL", "warning");
+  };
+
+  previewImg.onload = () => {
+    console.log("✅ Preview da imagem carregado!");
+  };
 }
 
 // ========================================
@@ -330,11 +562,17 @@ function renderAdminProducts(products) {
 async function handleFormSubmit(e) {
   e.preventDefault();
 
+  // Valida se há uma imagem (seja upload ou URL)
+  if (!currentImageData) {
+    showToast("❌ Adicione uma imagem do produto", "error");
+    return;
+  }
+
   const productData = {
     nome: document.getElementById("productName").value.trim(),
     descricao: document.getElementById("productDescription").value.trim(),
-    preco: document.getElementById("productPrice").value,
-    imagem: document.getElementById("productImage").value.trim(),
+    preco: parseFloat(document.getElementById("productPrice").value),
+    imagem: currentImageData, // Usa a imagem carregada (base64 ou URL)
     status: document.getElementById("productStatus").value,
   };
 
@@ -350,21 +588,48 @@ async function handleFormSubmit(e) {
   }
 
   try {
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
     if (currentEditingId) {
       // Atualizar produto existente
       await updateProduct(currentEditingId, productData);
-      showToast("Produto atualizado com sucesso!", "success");
+      showToast("✓ Produto atualizado com sucesso!", "success");
     } else {
       // Adicionar novo produto
       await addProduct(productData);
-      showToast("Produto adicionado com sucesso!", "success");
+      showToast("✓ Produto adicionado com sucesso!", "success");
     }
 
-    resetForm();
-    switchSection("produtos");
+    closeProductModal();
+
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "Salvar";
   } catch (error) {
     console.error("Erro ao salvar produto:", error);
-    showToast("Erro ao salvar produto. Tente novamente.", "error");
+    showToast("✗ Erro ao salvar produto. Tente novamente.", "error");
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "Salvar";
+  }
+}
+
+/**
+ * Confirma exclusão de produto
+ */
+async function deleteProductConfirm(productId) {
+  if (!confirm("Tem certeza que deseja excluir este produto?")) {
+    return;
+  }
+
+  try {
+    await deleteProduct(productId);
+    showToast("✓ Produto excluído com sucesso!", "success");
+  } catch (error) {
+    console.error("Erro ao excluir produto:", error);
+    showToast("✗ Erro ao excluir produto. Tente novamente.", "error");
   }
 }
 
@@ -501,43 +766,68 @@ async function confirmDelete() {
  */
 function showAdminLoading(show) {
   const loading = document.getElementById("adminLoading");
-  const productsList = document.getElementById("productsList");
+  const container = document.getElementById("productsTableContainer");
 
-  if (show) {
-    loading.style.display = "block";
-    productsList.style.display = "none";
-  } else {
-    loading.style.display = "none";
-    productsList.style.display = "grid";
+  if (loading && container) {
+    if (show) {
+      loading.style.display = "flex";
+      container.style.display = "none";
+    } else {
+      loading.style.display = "none";
+      container.style.display = "block";
+    }
   }
 }
 
 /**
- * Mostra notificação toast
+ * Mostra notificação toast (versão simplificada)
  */
 function showToast(message, type = "success") {
-  const toast = document.getElementById("toast");
-  const toastMessage = document.getElementById("toastMessage");
-  const icon = toast.querySelector("i");
+  // Cria toast dinamicamente se não existir
+  let toast = document.getElementById("toast");
 
-  // Define ícone e cor baseado no tipo
-  if (type === "success") {
-    icon.className = "fas fa-check-circle";
-    toast.style.background = "#27ae60";
-  } else if (type === "error") {
-    icon.className = "fas fa-exclamation-circle";
-    toast.style.background = "#e74c3c";
-  } else if (type === "warning") {
-    icon.className = "fas fa-exclamation-triangle";
-    toast.style.background = "#f39c12";
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "toast";
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transform: translateX(400px);
+      transition: transform 0.3s ease;
+    `;
+    document.body.appendChild(toast);
   }
 
-  toastMessage.textContent = message;
-  toast.classList.add("active");
+  // Define cor baseado no tipo
+  if (type === "success") {
+    toast.style.background = "#27ae60";
+    toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+  } else if (type === "error") {
+    toast.style.background = "#e74c3c";
+    toast.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+  } else if (type === "warning") {
+    toast.style.background = "#f39c12";
+    toast.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+  }
+
+  // Mostra o toast
+  setTimeout(() => {
+    toast.style.transform = "translateX(0)";
+  }, 100);
 
   // Remove após 3 segundos
   setTimeout(() => {
-    toast.classList.remove("active");
+    toast.style.transform = "translateX(400px)";
   }, 3000);
 }
 
