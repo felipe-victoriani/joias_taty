@@ -110,19 +110,125 @@
     </div>
 
     <div id="adminContent" class="hidden">
-      <!-- ...existing admin content... -->
+      <!-- Conteúdo do painel admin será carregado aqui -->
+      <div class="admin-header">
+        <h1>Painel Administrativo</h1>
+        <button id="logoutBtn" class="btn-logout">Sair</button>
+      </div>
+
+      <div class="admin-sections">
+        <nav class="admin-nav">
+          <a href="#" class="nav-item active" data-section="products">
+            <i class="fas fa-gem"></i> Produtos
+          </a>
+          <a href="#" class="nav-item" data-section="orders">
+            <i class="fas fa-shopping-cart"></i> Pedidos
+          </a>
+          <a href="#" class="nav-item" data-section="analytics">
+            <i class="fas fa-chart-bar"></i> Relatórios
+          </a>
+        </nav>
+
+        <main class="admin-main">
+          <!-- Seção de Produtos -->
+          <section id="products-section" class="admin-section active">
+            <div class="section-header">
+              <h2>Gerenciar Produtos</h2>
+              <button id="addProductBtn" class="btn-primary">
+                <i class="fas fa-plus"></i> Adicionar Produto
+              </button>
+            </div>
+
+            <div class="loading" id="adminLoading">
+              <div class="spinner"></div>
+              <p>Carregando produtos...</p>
+            </div>
+
+            <div class="products-table-container" id="productsTableContainer">
+              <table class="products-table">
+                <thead>
+                  <tr>
+                    <th>Imagem</th>
+                    <th>Nome</th>
+                    <th>Preço</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="productsTableBody">
+                  <!-- Produtos serão inseridos aqui -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Outras seções podem ser adicionadas aqui -->
+        </main>
+      </div>
     </div>
+
+    <!-- Modal para adicionar/editar produto -->
+    <div id="productModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modalTitle">Adicionar Produto</h3>
+          <button class="modal-close" id="closeModal">&times;</button>
+        </div>
+        <form id="productForm">
+          <div class="form-group">
+            <label for="productName">Nome do Produto</label>
+            <input type="text" id="productName" required />
+          </div>
+          <div class="form-group">
+            <label for="productDescription">Descrição</label>
+            <textarea id="productDescription" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="productPrice">Preço (R$)</label>
+            <input type="number" id="productPrice" step="0.01" required />
+          </div>
+          <div class="form-group">
+            <label for="productImage">URL da Imagem</label>
+            <input type="url" id="productImage" required />
+          </div>
+          <div class="form-group">
+            <label for="productStatus">Status</label>
+            <select id="productStatus" required>
+              <option value="disponivel">Disponível</option>
+              <option value="esgotado">Esgotado</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="button" id="cancelBtn" class="btn-secondary">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-primary">Salvar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Firebase Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <!-- Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="admin.js"></script>
 
     <script>
       const loginForm = document.getElementById("loginForm");
       const loginContainer = document.getElementById("loginContainer");
       const adminContent = document.getElementById("adminContent");
+      const logoutBtn = document.getElementById("logoutBtn");
 
       const validCredentials = {
         username: "admin",
-        password: "1234", // Substitua por credenciais seguras
+        password: "1234", // Substitua por credenciais seguras em produção
       };
 
+      // Login
       loginForm.addEventListener("submit", (e) => {
         e.preventDefault();
 
@@ -135,10 +241,34 @@
         ) {
           loginContainer.classList.add("hidden");
           adminContent.classList.remove("hidden");
+
+          // Inicializa o admin após o login
+          if (typeof initializeAdmin === "function") {
+            initializeAdmin();
+          }
         } else {
           alert("Credenciais inválidas. Tente novamente.");
+          document.getElementById("username").value = "";
+          document.getElementById("password").value = "";
         }
       });
+
+      // Logout
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+          adminContent.classList.add("hidden");
+          loginContainer.classList.remove("hidden");
+
+          // Limpa os campos de login
+          document.getElementById("username").value = "";
+          document.getElementById("password").value = "";
+
+          // Cancela escutas do Firebase se existirem
+          if (typeof window.unsubscribeProducts === "function") {
+            window.unsubscribeProducts();
+          }
+        });
+      }
     </script>
   </body>
 </html>

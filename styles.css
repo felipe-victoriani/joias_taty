@@ -525,6 +525,7 @@ a {
   display: flex;
   flex-direction: column;
   transition: right 0.3s ease;
+  overflow: hidden; /* Previne overflow da sidebar */
 }
 
 .cart-sidebar.active {
@@ -564,6 +565,8 @@ a {
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-md);
+  min-height: 0; /* Permite que o flex funcione corretamente */
+  max-height: calc(100vh - 200px); /* Garante espaço para header e footer */
 }
 
 .cart-empty {
@@ -629,6 +632,9 @@ a {
   border-top: 2px solid var(--color-gray-light);
   padding: var(--spacing-md);
   background: var(--color-marble);
+  flex-shrink: 0; /* Impede que o footer encolha */
+  min-height: auto;
+  z-index: 1; /* Garante que fique acima do body */
 }
 
 .cart-total {
@@ -662,6 +668,9 @@ a {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  position: relative;
+  z-index: 10; /* Garante que fique sempre visível */
+  min-height: 50px; /* Altura mínima para boa usabilidade */
 }
 
 .btn-whatsapp:hover {
@@ -783,9 +792,64 @@ a {
     gap: 0.7rem;
   }
 
+  /* Melhor área de toque para o botão do carrinho */
+  .cart-btn {
+    font-size: 1.8rem;
+    padding: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cart-count {
+    top: -4px;
+    right: -4px;
+    width: 22px;
+    height: 22px;
+    font-size: 0.75rem;
+  }
+
+  /* Melhorias do carrinho para tablet */
   .cart-sidebar {
-    max-width: 100%;
-    right: -100%;
+    max-width: 90%;
+    right: -90%;
+  }
+
+  .cart-header {
+    padding: 1rem;
+  }
+
+  .cart-body {
+    padding: 1rem;
+    max-height: calc(100vh - 180px); /* Ajuste para tablet */
+  }
+
+  .cart-footer {
+    padding: 1rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .cart-item {
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .cart-item-image {
+    width: 70px;
+    height: 70px;
+  }
+
+  .cart-close {
+    font-size: 1.8rem;
+    padding: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .footer-content {
@@ -801,5 +865,103 @@ a {
 @media (max-width: 480px) {
   .products-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Botão do carrinho ainda maior para mobile */
+  .cart-btn {
+    font-size: 2rem;
+    padding: 0.75rem;
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .cart-count {
+    top: -2px;
+    right: -2px;
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+  }
+
+  /* Melhorias específicas do carrinho para mobile */
+  .cart-sidebar {
+    width: 100%;
+    max-width: 100%;
+    right: -100%;
+  }
+
+  .cart-header {
+    padding: 0.75rem;
+  }
+
+  .cart-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .cart-body {
+    padding: 0.75rem;
+    max-height: calc(100vh - 160px); /* Ajuste para mobile */
+  }
+
+  .cart-footer {
+    padding: 0.75rem;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1); /* Sombra para destacar */
+  }
+
+  .cart-item {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .cart-item-image {
+    width: 60px;
+    height: 60px;
+    align-self: center;
+  }
+
+  .cart-item-info {
+    text-align: center;
+    width: 100%;
+  }
+
+  .cart-item-remove {
+    align-self: center;
+    padding: 0.75rem;
+    font-size: 1.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cart-total {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .btn-whatsapp {
+    padding: 1.2rem;
+    font-size: 1.1rem;
+    min-height: 48px;
+  }
+
+  .cart-close {
+    font-size: 2rem;
+    padding: 0.75rem;
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .cart-empty {
+    padding: 2rem 1rem;
+  }
+
+  .cart-empty i {
+    font-size: 3rem;
   }
 }

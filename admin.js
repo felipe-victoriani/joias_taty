@@ -4,30 +4,165 @@
 
 let currentEditingId = null;
 let deleteProductId = null;
+let currentUser = null;
 
 // ========================================
 // INICIALIZAÇÃO
 // ========================================
 
 document.addEventListener("DOMContentLoaded", () => {
-  initializeAdmin();
-  setupAdminEventListeners();
+  setupAuthStateListener();
+  setupLoginListener();
 });
+
+/**
+ * Configura listener para mudanças no estado de autenticação
+ */
+function setupAuthStateListener() {
+  onAuthStateChanged((user) => {
+    currentUser = user;
+
+    if (user) {
+      // Usuário está logado
+      console.log("✅ Usuário autenticado:", user.email);
+      showAdminPanel();
+      initializeAdmin();
+      setupAdminEventListeners();
+    } else {
+      // Usuário não está logado
+      console.log("⚠️ Usuário não autenticado");
+      showLoginPanel();
+    }
+  });
+}
+
+/**
+ * Configura listener para formulário de login
+ */
+function setupLoginListener() {
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", handleLogin);
+  }
+
+  // Botão de logout
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", handleLogout);
+  }
+}
+
+/**
+ * Manipula o login do admin
+ */
+async function handleLogin(e) {
+  e.preventDefault();
+
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
+  const errorMsg = document.getElementById("loginError");
+
+  try {
+    errorMsg.textContent = "";
+    errorMsg.style.display = "none";
+
+    // Mostrar loading no botão
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+
+    await loginAdmin(email, password);
+
+    // O listener onAuthStateChanged irá mostrar o painel automaticamente
+  } catch (error) {
+    console.error("Erro no login:", error);
+
+    let errorMessage = "Erro ao fazer login. Tente novamente.";
+
+    if (error.code === "auth/user-not-found") {
+      errorMessage = "Usuário não encontrado.";
+    } else if (error.code === "auth/wrong-password") {
+      errorMessage = "Senha incorreta.";
+    } else if (error.code === "auth/invalid-email") {
+      errorMessage = "Email inválido.";
+    } else if (error.code === "auth/too-many-requests") {
+      errorMessage = "Muitas tentativas. Tente novamente mais tarde.";
+    }
+
+    errorMsg.textContent = errorMessage;
+    errorMsg.style.display = "block";
+
+    // Restaurar botão
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Entrar";
+  }
+}
+
+/**
+ * Manipula o logout do admin
+ */
+async function handleLogout() {
+  try {
+    await logoutAdmin();
+    // O listener onAuthStateChanged irá mostrar o login automaticamente
+  } catch (error) {
+    console.error("Erro no logout:", error);
+    showToast("Erro ao fazer logout", "error");
+  }
+}
+
+/**
+ * Mostra o painel de login
+ */
+function showLoginPanel() {
+  const loginContainer = document.querySelector(".login-container");
+  const adminContainer = document.querySelector(".admin-container");
+
+  if (loginContainer) loginContainer.style.display = "flex";
+  if (adminContainer) adminContainer.style.display = "none";
+}
+
+/**
+ * Mostra o painel administrativo
+ */
+function showAdminPanel() {
+  const loginContainer = document.querySelector(".login-container");
+  const adminContainer = document.querySelector(".admin-container");
+
+  if (loginContainer) loginContainer.style.display = "none";
+  if (adminContainer) adminContainer.style.display = "block";
+
+  // Atualizar email do usuário no header
+  const userEmail = document.getElementById("userEmail");
+  if (userEmail && currentUser) {
+    userEmail.textContent = currentUser.email;
+  }
+}
 
 /**
  * Inicializa o painel admin
  */
 async function initializeAdmin() {
   try {
+    console.log("🔧 Inicializando painel administrativo...");
     showAdminLoading(true);
+
     await loadAdminProducts();
 
     // Escuta mudanças em tempo real
-    listenToProducts((products) => {
+    const unsubscribe = listenToProducts((products) => {
+      console.log("🔄 Produtos atualizados no admin:", products.length);
       renderAdminProducts(products);
     });
+
+    // Salva função para cancelar escuta
+    window.unsubscribeAdminProducts = unsubscribe;
+
+    console.log("✅ Painel admin inicializado com sucesso!");
   } catch (error) {
-    console.error("Erro ao inicializar admin:", error);
+    console.error("❌ Erro ao inicializar admin:", error);
     showToast("Erro ao carregar produtos", "error");
   } finally {
     showAdminLoading(false);
@@ -114,10 +249,23 @@ function switchSection(sectionName) {
  */
 async function loadAdminProducts() {
   try {
+    console.log("📱 Carregando produtos no painel admin...");
+
+    // Inicializa produtos de exemplo se necessário (mesma função do firebase-config.js)
+    await initializeExampleProducts();
+
     const products = await loadProducts();
-    renderAdminProducts(products);
+
+    if (products && products.length > 0) {
+      renderAdminProducts(products);
+      console.log("✅ Produtos carregados no admin:", products.length);
+    } else {
+      console.log("📝 Nenhum produto encontrado");
+      renderAdminProducts([]);
+    }
   } catch (error) {
-    console.error("Erro ao carregar produtos:", error);
+    console.error("❌ Erro ao carregar produtos no admin:", error);
+    showToast("Erro ao carregar produtos", "error");
     throw error;
   }
 }

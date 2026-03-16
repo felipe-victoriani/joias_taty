@@ -8,75 +8,98 @@
 // 2. Crie um novo projeto ou selecione um existente
 // 3. Vá em "Configurações do Projeto" > "Suas aplicações" > "Web"
 // 4. Copie a configuração e cole abaixo
+// 5. Habilite o Realtime Database em "Database" > "Realtime Database"
 
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY_AQUI",
-  authDomain: "SEU_AUTH_DOMAIN_AQUI",
-  projectId: "SEU_PROJECT_ID_AQUI",
-  storageBucket: "SEU_STORAGE_BUCKET_AQUI",
-  messagingSenderId: "SEU_MESSAGING_SENDER_ID_AQUI",
-  appId: "SEU_APP_ID_AQUI",
+  apiKey: "AIzaSyAzVMxqdkHE5BOACLCde4BZTc2Nm3Xtglo",
+  authDomain: "cachinhos-dourados.firebaseapp.com",
+  databaseURL: "https://cachinhos-dourados-default-rtdb.firebaseio.com/", // URL do Realtime Database
+  projectId: "cachinhos-dourados",
+  storageBucket: "cachinhos-dourados.firebasestorage.app",
+  messagingSenderId: "411652937366",
+  appId: "1:411652937366:web:569aee4f6664222c8f54b7",
 };
 
 // Inicializar Firebase
-firebase.initializeApp(firebaseConfig);
+try {
+  firebase.initializeApp(firebaseConfig);
 
-// Referência ao Firestore
-const db = firebase.firestore();
+  // Referência ao Firebase Auth
+  const auth = firebase.auth();
 
-// Referência à coleção de produtos
-const productsCollection = db.collection("produtos");
+  // Referência ao Realtime Database
+  const database = firebase.database();
 
-// Log de inicialização
-console.log("🔥 Firebase inicializado com sucesso!");
+  // Referência à coleção de produtos
+  const productsRef = database.ref("produtos");
+
+  // Log de inicialização
+  console.log("🔥 Firebase Realtime Database inicializado com sucesso!");
+  console.log("📋 Configuração:");
+  console.log("   - Project ID:", firebaseConfig.projectId);
+  console.log("   - Database URL:", firebaseConfig.databaseURL);
+} catch (error) {
+  console.error("❌ Erro ao inicializar Firebase:", error);
+  console.error("🔧 Verifique se:");
+  console.error("   - As credenciais estão corretas no firebase-config.js");
+  console.error("   - O projeto Firebase existe e está ativo");
+  console.error("   - O Realtime Database está habilitado");
+}
 
 // ========================================
 // FUNÇÕES AUXILIARES DO FIREBASE
 // ========================================
 
 /**
- * Carrega todos os produtos do Firestore
+ * Carrega todos os produtos do Realtime Database
  * @returns {Promise<Array>} Array de produtos
  */
 async function loadProducts() {
   try {
-    const snapshot = await productsCollection.get();
-    const products = [];
+    const snapshot = await productsRef.once("value");
+    const data = snapshot.val();
 
-    snapshot.forEach((doc) => {
-      products.push({
-        id: doc.id,
-        ...doc.data(),
-      });
-    });
+    if (!data) {
+      console.log("📝 Nenhum produto encontrado, usando produtos de exemplo");
+      return [];
+    }
 
+    // Converte o objeto para array
+    const products = Object.keys(data).map((key) => ({
+      id: key,
+      ...data[key],
+    }));
+
+    console.log("✅ Produtos carregados:", products.length);
     return products;
   } catch (error) {
-    console.error("Erro ao carregar produtos:", error);
+    console.error("❌ Erro ao carregar produtos:", error);
     throw error;
   }
 }
-
 /**
- * Adiciona um novo produto ao Firestore
+ * Adiciona um novo produto ao Realtime Database
  * @param {Object} productData - Dados do produto
  * @returns {Promise<string>} ID do produto criado
  */
 async function addProduct(productData) {
   try {
-    const docRef = await productsCollection.add({
+    // Cria uma nova referência com ID único
+    const newProductRef = productsRef.push();
+
+    await newProductRef.set({
       nome: productData.nome,
       descricao: productData.descricao,
       preco: parseFloat(productData.preco),
       imagem: productData.imagem,
       status: productData.status,
-      criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      criadoEm: firebase.database.ServerValue.TIMESTAMP,
     });
 
-    console.log("✅ Produto adicionado com ID:", docRef.id);
-    return docRef.id;
+    console.log("✅ Produto adicionado com ID:", newProductRef.key);
+    return newProductRef.key;
   } catch (error) {
-    console.error("Erro ao adicionar produto:", error);
+    console.error("❌ Erro ao adicionar produto:", error);
     throw error;
   }
 }
@@ -89,18 +112,18 @@ async function addProduct(productData) {
  */
 async function updateProduct(productId, productData) {
   try {
-    await productsCollection.doc(productId).update({
+    await productsRef.child(productId).update({
       nome: productData.nome,
       descricao: productData.descricao,
       preco: parseFloat(productData.preco),
       imagem: productData.imagem,
       status: productData.status,
-      atualizadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      atualizadoEm: firebase.database.ServerValue.TIMESTAMP,
     });
 
     console.log("✅ Produto atualizado:", productId);
   } catch (error) {
-    console.error("Erro ao atualizar produto:", error);
+    console.error("❌ Erro ao atualizar produto:", error);
     throw error;
   }
 }
@@ -112,10 +135,10 @@ async function updateProduct(productId, productData) {
  */
 async function deleteProduct(productId) {
   try {
-    await productsCollection.doc(productId).delete();
+    await productsRef.child(productId).remove();
     console.log("✅ Produto excluído:", productId);
   } catch (error) {
-    console.error("Erro ao excluir produto:", error);
+    console.error("❌ Erro ao excluir produto:", error);
     throw error;
   }
 }
@@ -126,21 +149,186 @@ async function deleteProduct(productId) {
  * @returns {Function} Função para cancelar a escuta
  */
 function listenToProducts(callback) {
-  return productsCollection.onSnapshot(
+  const listener = productsRef.on(
+    "value",
     (snapshot) => {
-      const products = [];
+      const data = snapshot.val();
 
-      snapshot.forEach((doc) => {
-        products.push({
-          id: doc.id,
-          ...doc.data(),
-        });
-      });
+      if (!data) {
+        callback([]);
+        return;
+      }
 
+      // Converte o objeto para array
+      const products = Object.keys(data).map((key) => ({
+        id: key,
+        ...data[key],
+      }));
+
+      console.log("🔄 Produtos atualizados em tempo real:", products.length);
       callback(products);
     },
     (error) => {
-      console.error("Erro ao escutar produtos:", error);
+      console.error("❌ Erro ao escutar produtos:", error);
     },
   );
+
+  // Retorna função para cancelar a escuta
+  return () => {
+    productsRef.off("value", listener);
+    console.log("🔇 Escuta de produtos cancelada");
+  };
+}
+
+/**
+ * Inicializa produtos de exemplo no Realtime Database (apenas se vazio)
+ * @returns {Promise<void>}
+ */
+async function initializeExampleProducts() {
+  try {
+    const snapshot = await productsRef.once("value");
+
+    // Se já existem produtos, não faz nada
+    if (snapshot.exists()) {
+      console.log("📋 Produtos já existem no database");
+      return;
+    }
+
+    console.log("🏗️ Inicializando produtos de exemplo...");
+
+    const exampleProducts = [
+      {
+        nome: "Colar Elegance",
+        descricao: "Colar delicado em banho de ouro com pingente de coração",
+        preco: 89.9,
+        imagem:
+          "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=500&q=80",
+        status: "disponivel",
+      },
+      {
+        nome: "Brinco Luxo",
+        descricao: "Par de brincos em argola com detalhes em cristal",
+        preco: 69.9,
+        imagem:
+          "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=500&q=80",
+        status: "disponivel",
+      },
+      {
+        nome: "Pulseira Sofisticada",
+        descricao: "Pulseira elo português folheada a ouro 18k",
+        preco: 129.9,
+        imagem:
+          "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500&q=80",
+        status: "disponivel",
+      },
+      {
+        nome: "Anel Clássico",
+        descricao: "Anel solitário com zircônia cravejada",
+        preco: 79.9,
+        imagem:
+          "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=500&q=80",
+        status: "esgotado",
+      },
+      {
+        nome: "Conjunto Premium",
+        descricao: "Conjunto colar e brinco com pedras naturais",
+        preco: 159.9,
+        imagem:
+          "https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=500&q=80",
+        status: "disponivel",
+      },
+      {
+        nome: "Tornozeleira Delicada",
+        descricao: "Tornozeleira fina com pingentes em formato de estrela",
+        preco: 49.9,
+        imagem:
+          "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=500&q=80",
+        status: "disponivel",
+      },
+    ];
+
+    // Adiciona cada produto
+    for (const product of exampleProducts) {
+      await addProduct(product);
+    }
+
+    console.log("✅ Produtos de exemplo inicializados com sucesso!");
+  } catch (error) {
+    console.error("❌ Erro ao inicializar produtos de exemplo:", error);
+  }
+}
+
+// ========================================
+// FUNÇÕES DE AUTENTICAÇÃO
+// ========================================
+
+/**
+ * Faz login do admin com email e senha
+ * @param {string} email - Email do admin
+ * @param {string} password - Senha do admin
+ * @returns {Promise<Object>} Dados do usuário autenticado
+ */
+async function loginAdmin(email, password) {
+  try {
+    const userCredential = await auth.signInWithEmailAndPassword(
+      email,
+      password,
+    );
+    console.log("✅ Admin logado com sucesso:", userCredential.user.email);
+    return userCredential.user;
+  } catch (error) {
+    console.error("❌ Erro ao fazer login:", error);
+    throw error;
+  }
+}
+
+/**
+ * Faz logout do admin
+ * @returns {Promise<void>}
+ */
+async function logoutAdmin() {
+  try {
+    await auth.signOut();
+    console.log("✅ Admin deslogado com sucesso!");
+  } catch (error) {
+    console.error("❌ Erro ao fazer logout:", error);
+    throw error;
+  }
+}
+
+/**
+ * Obtém o usuário autenticado atual
+ * @returns {Object|null} Usuário atual ou null
+ */
+function getCurrentUser() {
+  return auth.currentUser;
+}
+
+/**
+ * Escuta mudanças no estado de autenticação
+ * @param {Function} callback - Função chamada quando o estado muda
+ * @returns {Function} Função para cancelar a escuta
+ */
+function onAuthStateChanged(callback) {
+  return auth.onAuthStateChanged(callback);
+}
+
+/**
+ * Cria um novo usuário admin (use apenas uma vez para criar o primeiro admin)
+ * @param {string} email - Email do admin
+ * @param {string} password - Senha do admin
+ * @returns {Promise<Object>} Dados do usuário criado
+ */
+async function createAdmin(email, password) {
+  try {
+    const userCredential = await auth.createUserWithEmailAndPassword(
+      email,
+      password,
+    );
+    console.log("✅ Admin criado com sucesso:", userCredential.user.email);
+    return userCredential.user;
+  } catch (error) {
+    console.error("❌ Erro ao criar admin:", error);
+    throw error;
+  }
 }
