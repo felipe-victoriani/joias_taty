@@ -85,7 +85,7 @@ a {
   top: 0;
   left: 0;
   width: 100%;
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(232, 228, 220, 0.97);
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
   z-index: 1000;
@@ -99,12 +99,11 @@ a {
   padding: var(--spacing-sm) 0;
 }
 
-.logo h1 {
-  font-family: var(--font-primary);
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--color-black);
+.logo-img {
+  height: 54px;
+  width: auto;
+  display: block;
+  object-fit: contain;
 }
 
 .tagline {
@@ -179,7 +178,7 @@ a {
   position: relative;
   height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   text-align: center;
   background: url("../images/logo_ouro.jpeg") center calc(50% + 35px) / cover
@@ -217,12 +216,11 @@ a {
 
 .hero-content {
   position: relative;
-  z-index: 2; /* Garante que o texto fique acima da imagem */
+  z-index: 2;
   max-width: 800px;
   padding: 0 var(--spacing-sm);
-  color: var(
-    --color-gray
-  ); /* Ajusta o tom do texto para combinar com o estilo da seção 'Sobre Nós' */
+  margin-bottom: 5rem;
+  color: var(--color-gray);
 }
 
 .hero-title {
@@ -332,7 +330,7 @@ a {
 
 .about {
   padding: var(--spacing-xl) 0;
-  background: var(--color-white);
+  background: var(--color-marble);
 }
 
 .about-content {
@@ -416,7 +414,7 @@ a {
 
 .product-card {
   background: var(--color-white);
-  border-radius: 0;
+  border-radius: 8px;
   overflow: hidden;
   transition: var(--transition);
   box-shadow: var(--shadow-sm);
