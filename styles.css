@@ -11,7 +11,7 @@
 :root {
   /* Cores - Inspiração CHANEL */
   --color-white: #ffffff;
-  --color-marble: #f8f6f4;
+  --color-marble: #e8e4dc;
   --color-gold: #d4af37;
   --color-gold-light: #e8d4a0;
   --color-gold-dark: #b8941f;
@@ -182,7 +182,8 @@ a {
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: url("../images/back_dourado.jpeg") center/cover no-repeat;
+  background: url("../images/logo_ouro.jpeg") center calc(50% + 35px) / cover
+    no-repeat;
   overflow: hidden;
   opacity: 1; /* Remove a opacidade da imagem */
 }
