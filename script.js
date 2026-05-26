@@ -467,9 +467,6 @@ function updateCartUI() {
   if (cartEmpty) cartEmpty.style.display = "none";
   if (cartFooter) {
     cartFooter.style.display = "block";
-    // Garante que o footer seja visível forçando uma atualização do layout
-    cartFooter.style.position = "relative";
-    cartFooter.style.zIndex = "10";
   }
 
   // Renderiza itens do carrinho

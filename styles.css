@@ -425,6 +425,8 @@ a {
   transition: var(--transition);
   box-shadow: var(--shadow-sm);
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .product-card:hover {
@@ -475,6 +477,9 @@ a {
 
 .product-info {
   padding: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .product-name {
@@ -490,6 +495,7 @@ a {
   color: var(--color-gray);
   margin-bottom: 0.5rem;
   line-height: 1.4;
+  flex: 1;
 }
 
 .product-price {
@@ -536,13 +542,14 @@ a {
   width: 100%;
   max-width: 400px;
   height: 100vh;
+  height: 100dvh; /* Corrige bug da barra de endereço no mobile */
   background: var(--color-white);
   box-shadow: var(--shadow-lg);
   z-index: 2000;
   display: flex;
   flex-direction: column;
   transition: right 0.3s ease;
-  overflow: hidden; /* Previne overflow da sidebar */
+  overflow: hidden;
 }
 
 .cart-sidebar.active {
@@ -582,11 +589,8 @@ a {
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-md);
-  min-height: 0; /* Permite que o flex funcione corretamente */
-  max-height: calc(
-    100vh - 250px
-  ); /* Garante espaço suficiente para header e footer */
-  padding-bottom: 0; /* Remove padding inferior para economizar espaço */
+  min-height: 0;
+  padding-bottom: 0;
 }
 
 .cart-empty {
@@ -659,11 +663,7 @@ a {
   border-top: 2px solid var(--color-gray-light);
   padding: var(--spacing-md);
   background: var(--color-marble);
-  flex-shrink: 0; /* Impede que o footer encolha */
-  min-height: auto;
-  z-index: 1; /* Garante que fique acima do body */
-  position: sticky;
-  bottom: 0;
+  flex-shrink: 0;
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -868,13 +868,10 @@ a {
 
   .cart-body {
     padding: 1rem;
-    max-height: calc(100vh - 180px); /* Ajuste para tablet */
   }
 
   .cart-footer {
     padding: 1rem;
-    position: relative;
-    z-index: 2;
   }
 
   .cart-item {
@@ -978,16 +975,12 @@ a {
   .cart-body {
     padding: 0.75rem;
     padding-bottom: 0.5rem;
-    max-height: calc(100vh - 220px); /* Mais espaço para o footer em mobile */
   }
 
   .cart-footer {
     padding: 1rem;
-    position: sticky;
-    bottom: 0;
-    z-index: 2;
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15); /* Sombra maior para destacar */
-    background: var(--color-white); /* Fundo mais contrastante */
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
+    background: var(--color-white);
   }
 
   .cart-item {
